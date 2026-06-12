@@ -23,7 +23,7 @@ inteligence = st.number_input("Kolik máš IQ ty konino", min_value=0, max_value
 if st.button("test"):
     if inteligence > 20:
         st.success(f"Ahoj {jmeno}! Jsi chytřejší jak labrador, gratuluji!")
-        else:
+     else:
         st.warning(f"Ahoj {jmeno}, tvoje IQ je tak zasraně v hajzlu, že nemám slov")
         st.image ("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQqRavdWAv8MxitBXG9GazogltUp6RJ2djHAhAqxeJfA&s=10")
 
