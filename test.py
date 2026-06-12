@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("🐱 Kočičí detektor ti zmrde")
+st.title("🐱 Kočičí detektor ti zmrde a natála smrdíííííííí fuuuuuuuj")
 
 # 1. Zadáme jméno
 jmeno = st.text_input("Jak se jmenuješ?")
