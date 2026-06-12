@@ -26,4 +26,11 @@ if st.button("test"):
     else:
         st.warning(f"Ahoj {jmeno}, tvoje IQ je tak zasraně v hajzlu, že nemám slov")
         st.image ("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQqRavdWAv8MxitBXG9GazogltUp6RJ2djHAhAqxeJfA&s=10")
+        nalada = st.selectbox("Jakou máš dnes náladu?", ["Skvělou", "Pod psa"])
+
+if nalada == "Skvělou":
+    st.balloons() # Tohle ti na stránce vystřelí balónky!
+    st.write("jupí ty sketo!")
+elif nalada == "Pod psa":
+    st.write("S tvým kscihtem se ani nedivím:).")
 
