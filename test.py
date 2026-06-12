@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 1. Nastavení
+# 1. Nastavení stránky
 st.set_page_config(layout="wide")
 st.title("🐱 Kočičí detektor ti zmrde")
 
@@ -11,47 +11,37 @@ if "pravy_vyber" not in st.session_state:
 # 3. Rozdělení stránky
 left_col, right_col = st.columns([3, 1])
 
+# Pravý panel (Menu)
 with right_col:
     st.subheader("Další menu")
-    # Tlačítko pro návrat na úvod
     if st.button("DOMŮ", use_container_width=True):
         st.session_state.pravy_vyber = None
-    
     if st.button("KOČKA 1", use_container_width=True):
         st.session_state.pravy_vyber = "kocka1"
-        
     if st.button("KOČKA 2", use_container_width=True):
         st.session_state.pravy_vyber = "kocka2"
 
+# Levý panel (Hlavní obsah)
 with left_col:
-    # OPRAVENO: Jedna podmínka pro "kocka1", ve které je rovnou kalkulačka
     if st.session_state.pravy_vyber == "kocka1":
-        st.header("🐱 Kočičí kalkulačka")
+        st.header("🐱 Kočičí kalkulačka a párty")
+        # Video se spustí automaticky
+        st.video("https://www.youtube.com/watch?v=fWcKji80qns", autoplay=True)
         
-        # Inicializace stavu pro kalkulačku
         if "vysledek" not in st.session_state:
             st.session_state.vysledek = 0
 
-        # Vstupní pole
         cislo1 = st.number_input("První číslo", value=0, key="c1")
         cislo2 = st.number_input("Druhé číslo", value=0, key="c2")
 
-        # Tlačítka pro operace
         col1, col2, col3, col4 = st.columns(4)
-        
-        if col1.button("➕"):
-            st.session_state.vysledek = cislo1 + cislo2
-        if col2.button("➖"):
-            st.session_state.vysledek = cislo1 - cislo2
-        if col3.button("✖️"):
-            st.session_state.vysledek = cislo1 * cislo2
+        if col1.button("➕"): st.session_state.vysledek = cislo1 + cislo2
+        if col2.button("➖"): st.session_state.vysledek = cislo1 - cislo2
+        if col3.button("✖️"): st.session_state.vysledek = cislo1 * cislo2
         if col4.button("➗"):
-            if cislo2 != 0:
-                st.session_state.vysledek = cislo1 / cislo2
-            else:
-                st.error("Dělení nulou, ty kočičáku!")
+            if cislo2 != 0: st.session_state.vysledek = cislo1 / cislo2
+            else: st.error("Dělení nulou, ty kočičáku!")
 
-        # Zobrazení výsledku
         st.write("---")
         st.subheader(f"Výsledek: {st.session_state.vysledek}")
         st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/JIX9t2j0ZTN9S/giphy.gif", width=300)
@@ -61,7 +51,7 @@ with left_col:
         st.write("Tady je obsah pro druhou kočku.")
     
     else:
-        # Tvoje původní aplikace
+        # Původní aplikace
         jmeno = st.text_input("Jak se jmenuješ?")
         vek = st.number_input("Kolik je ti let?", min_value=0, max_value=120, value=25)
 
