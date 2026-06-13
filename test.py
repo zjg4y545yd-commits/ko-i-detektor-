@@ -18,8 +18,9 @@ with right_col:
         st.session_state.pravy_vyber = None
     if st.button("KOČKA 1", use_container_width=True):
         st.session_state.pravy_vyber = "kocka1"
-    if st.button("KOČKA 2", use_container_width=True):
+    if st.button("FRANTIŠEK ŘEDITEL", use_container_width=True):
         st.session_state.pravy_vyber = "kocka2"
+       
 
 # Levý panel (Hlavní obsah)
 with left_col:
@@ -47,9 +48,26 @@ with left_col:
         st.image("https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6NHJ4ZzR6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/JIX9t2j0ZTN9S/giphy.gif", width=300)
 
     elif st.session_state.pravy_vyber == "kocka2":
-        st.header("Záložka: KOČKA 2")
-        st.write("Tady je obsah pro druhou kočku.")
-    
+        st.title("TEST PROKRASTINACE")
+        st.header("František ředitel, ministr zeměkoule")
+        kvíz = st.selectbox("Kolik stály ugurty ?", ["-","8,90 ty pisooo", "7,90 ty pisooo"])
+        if kvíz=="7,90 ty pisooo":
+            st.balloons()
+            st.success("Nádherné, jde vidět, že žiješ kvalitně" )
+            kvíz = st.selectbox("Kdo je Františkova holka?", ["-","Zatím nemá", "Maruška"])
+        if kvíz=="Maruška":
+            st.success(f"Super kamaráde! Alespoň tady můžeš zářit, když v životě smrdíš!")
+            st.balloons()
+        if kvíz=="Zatím nemá":
+            st.warning(f"Špatně sráči! Rytmus ti právě najebal uspávací bombičku ")
+            st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
+
+                
+
+
+
+           
+        
     else:
         # Původní aplikace
         jmeno = st.text_input("Jak se jmenuješ?")
