@@ -113,9 +113,9 @@ with left_col:
                 st.warning(f"Ahoj {jmeno}, je ti jen {vek}. To je na kočku ještě málo, teď ti Rytmus napálí vypínačku ")
                 st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
         
-        inteligence = st.number_input("Kolik máš IQ ty konino", min_value=0, max_value=200, value=25, key="input_iq")
+        inteligence = st.number_input("Kolik máš IQ ty konino min:0  max:200 ", min_value=0, max_value=200, value=25, key="input_iq")
         if st.button("test", key="btn_iq"):
-            if inteligence > 20:
+            if inteligence > 160:
                 st.success(f"Ahoj {jmeno}! Jsi chytřejší jak labrador, gratuluji!")
             else:
                 st.warning(f"Ahoj {jmeno}, tvoje IQ je tak zasraně v hajzlu, že nemám slov")
