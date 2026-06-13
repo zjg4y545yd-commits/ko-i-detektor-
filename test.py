@@ -2,7 +2,7 @@ import streamlit as st
 
 # 1. Nastavení stránky
 st.set_page_config(layout="wide")
-st.title("🐱 Kočičí detektor ti zmrde")
+st.title("Dotazníček o kočku ")
 
 # 2. Inicializace stavu
 if "pravy_vyber" not in st.session_state:
@@ -16,7 +16,7 @@ with right_col:
     st.subheader("Další menu")
     if st.button("DOMŮ", use_container_width=True):
         st.session_state.pravy_vyber = None
-    if st.button("KOČKA 1", use_container_width=True):
+    if st.button("KALKULAČKA", use_container_width=True):
         st.session_state.pravy_vyber = "kocka1"
     if st.button("FRANTIŠEK ŘEDITEL", use_container_width=True):
         st.session_state.pravy_vyber = "kocka2"
@@ -25,7 +25,7 @@ with right_col:
 # Levý panel (Hlavní obsah)
 with left_col:
     if st.session_state.pravy_vyber == "kocka1":
-        st.header("🐱 Kočičí kalkulačka a párty")
+        st.header("Spočítej si ugurty")
         # Video se spustí automaticky
         st.video("https://www.youtube.com/watch?v=fWcKji80qns", autoplay=True)
         
@@ -58,7 +58,25 @@ with left_col:
         if kvíz=="Maruška":
             st.success(f"Super kamaráde! Alespoň tady můžeš zářit, když v životě smrdíš!")
             st.balloons()
+            kvíz = st.selectbox("Co má František nejraději?", ["-","Grilovačky", "Grilovánky"])
+        if kvíz=="Grilovánky":
+            st.balloons()
+            st.success("Máš naprostou pravdu, patříš mezi top 1%!" )
+            kvíz = st.selectbox("Co vše musíme dát do rajčatového salátu", ["-","sůl,ocet,cukr", "ocet,sůl,cukr krystal"])
+        if kvíz=="sůl,ocet,cukr":
+            st.balloons()
+            st.success("Správně, konečně tě internet naučil něco kloudného!" )
+
+        if kvíz=="ocet,sůl,cukr krystal":
+            st.warning(f"Špatně sráči! Rytmus ti právě najebal uspávací bombičku ")
+            st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
+            
+
         if kvíz=="Zatím nemá":
+            st.warning(f"Špatně sráči! Rytmus ti právě najebal uspávací bombičku ")
+            st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
+            
+        if kvíz=="Grilovačky":
             st.warning(f"Špatně sráči! Rytmus ti právě najebal uspávací bombičku ")
             st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
 
@@ -82,7 +100,7 @@ with left_col:
                 st.warning(f"Ahoj {jmeno}, je ti jen {vek}. To je na kočku ještě málo, teď ti Rytmus napálí vypínačku ")
                 st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8s0kQKci68L9t_hQ4sbMIKCo_hcka3XI6Of_2Z3YGyA&s=10")
         
-        inteligence = st.number_input("Kolik máš IQ ty konino", min_value=0, max_value=200, value=25)
+        inteligence = st.number_input("Kolik máš IQ ty konino? MIN:0  MAX:200", min_value=0, max_value=200, value=25)
         if st.button("test"):
             if inteligence > 20:
                 st.success(f"Ahoj {jmeno}! Jsi chytřejší jak labrador, gratuluji!")
@@ -90,7 +108,7 @@ with left_col:
                 st.warning(f"Ahoj {jmeno}, tvoje IQ je tak zasraně v hajzlu, že nemám slov")
                 st.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQqRavdWAv8MxitBXG9GazogltUp6RJ2djHAhAqxeJfA&s=10")
 
-        nalada = st.selectbox("Jakou máš dnes náladu?", ["Skvělou", "Pod psa"])
+        nalada = st.selectbox("Jakou máš dnes náladu?", ["-","Skvělou", "Pod psa"])
         if nalada == "Skvělou":
             st.balloons()
             st.write("jupí ty sketo!")
