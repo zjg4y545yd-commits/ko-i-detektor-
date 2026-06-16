@@ -4,16 +4,7 @@ import json
 import os
 import pandas as pd
 from datetime import date
-
-# --- AUTOMATICKÁ OPRAVA CHYBĚJÍCÍCH KNIHOVEN ---
-try:
-    import yfinance as yf
-except ModuleNotFoundError:
-    import subprocess
-    import sys
-    # Pokud yfinance chybí, Python si ho sám nainstaluje
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "yfinance"])
-    import yfinance as yf
+import yfinance as yf
 
 # 1. Nastavení stránky (musí být vždy na začátku)
 st.set_page_config(layout="wide")
@@ -167,7 +158,7 @@ with left_col:
     # --- PENÍZKY (AKCIE) ---
     elif st.session_state.pravy_vyber == "penizky":
         st.title("💸 Penízky (Akcie & Krypto)")
-        st.write("Tady máš přehled trhu, ať víš, jestli už kupovat Lambo, nebo jít radši makat.")
+        st.write("Tady máš přehled trhu s inteligentními nákupními a prodejními cíli.")
         
         akcie_seznam = {
             "Nu Holdings": "NU",
@@ -199,42 +190,55 @@ with left_col:
             "Bitcoin": "🟢 BUY (Čekáme na návrat k historickým maximům, ne?)"
         }
         
-        # Převod na list pro jednodušší vykreslování po dvojicích
         polozky = list(akcie_seznam.items())
         
         for i in range(0, len(polozky), 2):
-            cols = st.columns(2)  # Vytvoří 2 sloupce vedle sebe
+            cols = st.columns(2)
             
-            # První graf ve dvojici
-            with cols[0]:
-                nazev, ticker = polozky[i]
-                st.subheader(f"{nazev} ({ticker})")
-                st.markdown(f"**Názor analytiků:** {doporuceni[nazev]}")
-                try:
-                    ticker_data = yf.Ticker(ticker)
-                    hist = ticker_data.history(period="3mo")
-                    if not hist.empty:
-                        st.line_chart(hist['Close'])
-                    else:
-                        st.warning("Data nejsou momentálně dostupná.")
-                except Exception as e:
-                    st.error("Nepodařilo se načíst data.")
-            
-            # Druhý graf ve dvojici (pokud ještě existuje)
-            if i + 1 < len(polozky):
-                with cols[1]:
-                    nazev, ticker = polozky[i+1]
+            def vykresli_akcii(col, nazev, ticker):
+                with col:
                     st.subheader(f"{nazev} ({ticker})")
-                    st.markdown(f"**Názor analytiků:** {doporuceni[nazev]}")
                     try:
                         ticker_data = yf.Ticker(ticker)
                         hist = ticker_data.history(period="3mo")
+                        
                         if not hist.empty:
+                            cena_ted = hist['Close'].iloc[-1]
+                            cena_vcera = hist['Close'].iloc[-2] if len(hist) > 1 else cena_ted
+                            zmena_procenta = ((cena_ted - cena_vcera) / cena_vcera) * 100
+                            
+                            max_3m = hist['Close'].max()
+                            min_3m = hist['Close'].min()
+                            
+                            # Výpočet ideální nákupní a prodejní zóny
+                            nakup_pod = min_3m * 1.03
+                            prodej_nad = max_3m * 0.97
+                            
+                            if cena_ted <= min_3m * 1.07:
+                                teplomer = "🛒 VE SLEVĚ (Blízko 3měsíčního minima)"
+                            elif cena_ted >= max_3m * 0.95:
+                                teplomer = "🥵 DRAHÉ (Blízko 3měsíčního maxima)"
+                            else:
+                                teplomer = "⚖️ NEUTRÁLNÍ (Zlatá střední cesta)"
+                            
+                            st.metric(label="Aktuální cena", value=f"${cena_ted:.2f}", delta=f"{zmena_procenta:.2f} %")
+                            st.write(f"🟢 **Kdy koupit (pod):** ${nakup_pod:.2f} | 🔴 **Kdy prodat (nad):** ${prodej_nad:.2f}")
+                            st.markdown(f"**Teploměr trhu:** {teplomer}")
+                            st.markdown(f"**Názor analytiků:** {doporuceni[nazev]}")
                             st.line_chart(hist['Close'])
                         else:
                             st.warning("Data nejsou momentálně dostupná.")
                     except Exception as e:
-                        st.error("Nepodařilo se načíst data.")
+                        st.error("Nepodařilo se načíst data z burzy.")
+            
+            # První sloupec
+            nazev1, ticker1 = polozky[i]
+            vykresli_akcii(cols[0], nazev1, ticker1)
+            
+            # Druhý sloupec
+            if i + 1 < len(polozky):
+                nazev2, ticker2 = polozky[i+1]
+                vykresli_akcii(cols[1], nazev2, ticker2)
             
             st.markdown("---")
 
