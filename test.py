@@ -3,7 +3,7 @@ import random
 import json
 import os
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 import yfinance as yf
 
 # 1. Nastavení stránky (musí být vždy na začátku)
@@ -245,7 +245,13 @@ with left_col:
         st.title("⚖️ Právnický koutek (Advokátní speciál)")
         st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
         
-        tab1, tab2, tab3, tab4 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač mluvy", "📝 Předžalobní buchar", "🎲 Justiční ruleta"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "⏱️ Kalkulačka lhůt", 
+            "🔤 Překladač mluvy", 
+            "📝 Předžalobní buchar", 
+            "🎲 Justiční ruleta",
+            "💸 Úroky z prodlení"
+        ])
         
         with tab1:
             st.subheader("Výpočet procesních lhůt")
@@ -348,6 +354,32 @@ with left_col:
                 ]
                 st.warning(random.choice(vysledky))
                 st.image("https://media.giphy.com/media/3o7TKSd0EA9zH0kS5q/giphy.gif", width=300)
+
+        with tab5:
+            st.subheader("💸 Kalkulačka zákonných úroků z prodlení")
+            st.write("Rychlý výpočet úroků podle nařízení vlády č. 351/2013 Sb. (navázáno na repo sazbu ČNB + 8 %)")
+            
+            u_jistina = st.number_input("Dlužná jistina (Kč):", value=50000, step=1000, key="u_jistina")
+            u_od = st.date_input("Počátek prodlení (první den po splatnosti):", date(2025, 1, 1), key="u_od")
+            u_do = st.date_input("Konec prodlení (případně dnešní den):", date.today(), key="u_do")
+            
+            # Sazba pro zjednodušení simuluje aktuální průměrný zákonný standard (~ 13.25 % ročně)
+            sazba_anual = 0.1325 
+            
+            if u_od < u_do:
+                dny_prodleni = (u_do - u_od).days
+                # Výpočet: Jistina * Sazba * (Počet dní / 365)
+                vypocteny_urok = u_jistina * sazba_anual * (dny_prodleni / 365.0)
+                celkem_s_urokem = u_jistina + vypocteny_urok
+                
+                st.info(f"Počet dní v prodlení: **{dny_prodleni} dní**")
+                st.metric(label="Vypočtený zákonný úrok", value=f"{vypocteny_urok:,.2f} Kč")
+                st.metric(label="Celková pohledávka s úrokem", value=f"{celkem_s_urokem:,.2f} Kč")
+                
+                text_petitu = f"Žalovaný je povinen zaplatit žalobci jistinu ve výši {u_jistina:,.2f} Kč spolu se zákonným úrokem z prodlení ve výši {sazba_anual*100:.2f} % ročně z částky {u_jistina:,.2f} Kč za období od {u_od.strftime('%d. %m. %Y')} do zaplacení."
+                st.text_area("Formulace do žalobního petitu:", value=text_petitu, height=100)
+            else:
+                st.error("Chyba: Počátek prodlení musí být dříve než konec prodlení.")
 
     # --- DOMŮ ---
     else:
