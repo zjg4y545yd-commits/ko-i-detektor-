@@ -60,6 +60,7 @@ with right_col:
     if st.button("PEXESO", use_container_width=True, key="btn_pexeso"): st.session_state.pravy_vyber = "pexeso"
     if st.button("NÁVŠTĚVNOST", use_container_width=True, key="btn_navstevnost"): st.session_state.pravy_vyber = "navstevnost"
     if st.button("PENÍZKY", use_container_width=True, key="btn_penizky"): st.session_state.pravy_vyber = "penizky"
+    if st.button("PRO PRÁVNÍKY", use_container_width=True, key="btn_pravnici"): st.session_state.pravy_vyber = "pravnici"
     
     st.markdown("---")
     st.subheader(f"Tvoje body: {st.session_state.body}")
@@ -210,7 +211,6 @@ with left_col:
                             max_3m = hist['Close'].max()
                             min_3m = hist['Close'].min()
                             
-                            # Výpočet ideální nákupní a prodejní zóny
                             nakup_pod = min_3m * 1.03
                             prodej_nad = max_3m * 0.97
                             
@@ -231,16 +231,77 @@ with left_col:
                     except Exception as e:
                         st.error("Nepodařilo se načíst data z burzy.")
             
-            # První sloupec
             nazev1, ticker1 = polozky[i]
             vykresli_akcii(cols[0], nazev1, ticker1)
             
-            # Druhý sloupec
             if i + 1 < len(polozky):
                 nazev2, ticker2 = polozky[i+1]
                 vykresli_akcii(cols[1], nazev2, ticker2)
             
             st.markdown("---")
+
+    # --- PRO PRÁVNÍKY ---
+    elif st.session_state.pravy_vyber == "pravnici":
+        st.title("⚖️ Právnický koutek (Advokátní speciál)")
+        st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
+        
+        tab1, tab2 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač do právničiny"])
+        
+        with tab1:
+            st.subheader("Výpočet procesních lhůt")
+            datum_doruceni = st.date_input("Datum doručení písemnosti / rozsudku:", date.today())
+            
+            typ_lhuty = st.selectbox(
+                "Vyber typ lhůty:",
+                [
+                    "Odvolání v civilním řízení (OSŘ) - 15 dní",
+                    "Odpor proti platebnímu rozkazu - 15 dní",
+                    "Kasační stížnost (NSS) - 2 týdny",
+                    "Žaloba proti správnímu rozhodnutí - 2 měsíce"
+                ]
+            )
+            
+            # Výpočet dnů
+            if "15 dní" in typ_lhuty:
+                konecna_lhuta = datum_doruceni + pd.Timedelta(days=15)
+            elif "2 týdny" in typ_lhuty:
+                konecna_lhuta = datum_doruceni + pd.Timedelta(days=14)
+            elif "2 měsíce" in typ_lhuty:
+                # Jednoduchý posun o cca 61 dní pro zjednodušení
+                konecna_lhuta = datum_doruceni + pd.Timedelta(days=61)
+                
+            st.info(f"Materiál musí být odeslán nejpozději dne: **{konecna_lhuta.strftime('%d. %m. %Y')}**")
+            st.caption("⚠️ **Upozornění pro koncipienty:** Pokud konec lhůty připadne na sobotu, neděli nebo svátek, posledním dnem lhůty je nejbližší příští pracovní den podle § 57 odst. 2 OSŘ. Neodkládejte to na poslední chvíli, vy lamy.")
+            
+        with tab2:
+            st.subheader("Pasivně-agresivní překladač do soudní mluvy")
+            st.write("Napiš pravdu na rovinu a kód z toho udělá elegantní právní odstavec do žaloby.")
+            
+            myslenka = st.selectbox(
+                "Co chceš protistraně nebo soudci reálně vzkázat?",
+                [
+                    "-",
+                    "Je to totální idiot a kompletně si vymýšlí",
+                    "Dluží mi prachy, nereaguje a dělá mrtvého brouka",
+                    "Ta jeho práce stojí za hovno, je to celé nakřivo",
+                    "Už mě neser, nebo tě poženu k soudu a zaplatíš i mýho právníka"
+                ]
+            )
+            
+            preklady = {
+                "Je to totální idiot a kompletně si vymýšlí": 
+                    "👉 *Tvrzení protistrany vykazují zřejmé známky argumentační nouze, jsou zcela účelová a v příkrém rozporu se skutečným stavem věci, což žalobce v následujících bodech prokáže listinnými důkazy.*",
+                "Dluží mi prachy, nereaguje a dělá mrtvého brouka": 
+                    "👉 *Žalovaný je dlouhodobě v prodlení se splněním svého peněžitého závazku. Na opakované mimosoudní předžalobní výzvy k plnění doručené do jeho datové schránky doposud nijak nereagoval.*",
+                "Ta jeho práce stojí za hovno, je to celé nakřivo": 
+                    "👉 *Předmět díla vykazuje zjevné statické, technické a estetické vady neodpovídající schválené projektové dokumentaci, platným technologickým postupům ani závazným normám ČSN.*",
+                "Už mě neser, nebo tě poženu k soudu a zaplatíš i mýho právníka": 
+                    "👉 *V případě, že ze strany žalovaného nedojde k okamžité nápravě tohoto protiprávního stavu, je můj klient nucen hájit svá legitimní práva soudní cestou, což pro žalovaného bude znamenat povinnost uhradit rovněž plné náklady nalézacího řízení.*"
+            }
+            
+            if myslenka != "-":
+                st.success(preklady[myslenka])
+                st.button("Zkopírovat do schránky (mentálně)")
 
     # --- DOMŮ ---
     else:
