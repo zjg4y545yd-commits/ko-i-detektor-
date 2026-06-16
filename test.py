@@ -28,16 +28,25 @@ def nacti_nebo_vytvor_data():
 
 data_navstevnosti = nacti_nebo_vytvor_data()
 
+# 2. Inicializace stavu
 if "zapoteno" not in st.session_state:
     data_navstevnosti[dnes] = data_navstevnosti.get(dnes, 0) + 1
     with open(SOUBOR, "w") as f:
         json.dump(data_navstevnosti, f)
     st.session_state.zapoteno = True
 
-# 2. Inicializace stavu
 if "pravy_vyber" not in st.session_state: st.session_state.pravy_vyber = None
 if "body" not in st.session_state: st.session_state.body = 0
 if "pexeso_hotovo" not in st.session_state: st.session_state.pexeso_hotovo = False
+
+# Inicializace úkolů pro nástěnku právníků
+if "ukoly" not in st.session_state:
+    st.session_state.ukoly = {
+        "Jaroslav": [{"text": "Popsat důkazy k žalobě Nováka", "termin": "Dnes", "hotovo": False}],
+        "Petr": [],
+        "Natálie": [{"text": "Odeslat datovky soudu v Brně", "termin": "Zítra", "hotovo": False}],
+        "Pavla": []
+    }
 
 # Funkce pro body a trest
 def pricti_body(key, hodnota):
@@ -245,12 +254,13 @@ with left_col:
         st.title("⚖️ Právnický koutek (Advokátní speciál)")
         st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
         
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
             "⏱️ Kalkulačka lhůt", 
             "🔤 Překladač mluvy", 
             "📝 Předžalobní buchar", 
             "🎲 Justiční ruleta",
-            "💸 Úroky z prodlení"
+            "💸 Úroky z prodlení",
+            "📋 Nástěnka úkolů"
         ])
         
         with tab1:
@@ -279,7 +289,6 @@ with left_col:
             
         with tab2:
             st.subheader("Pasivně-agresivní překladač do soudní mluvy")
-            st.write("Napiš pravdu na rovinu a kód z toho udělá elegantní právní odstavec do žaloby.")
             
             myslenka = st.selectbox(
                 "Co chceš protistraně nebo soudci reálně vzkázat?",
@@ -305,11 +314,9 @@ with left_col:
             
             if myslenka != "-":
                 st.success(preklady[myslenka])
-                st.button("Zkopírovat do schránky (mentálně)")
 
         with tab3:
             st.subheader("📝 Předžalobní výzva na jedno kliknutí")
-            st.write("Vyplň údaje a vygeneruj strašák, po kterém dlužník okamžitě vyměkne.")
             
             p_jmeno = st.text_input("Celé jméno / Název dlužníka:", "Jan Novák", key="pb_jmeno")
             p_adresa = st.text_input("Adresa / Sídlo dlužníka:", "Uliční 123, 110 00 Praha", key="pb_adresa")
@@ -341,7 +348,6 @@ with left_col:
                 
         with tab4:
             st.subheader("🎲 Věštírna: Jakou má dneska soudce náladu?")
-            st.write("Česká justice je loterie. Klikni a zjisti, jak to dneska u soudu reálně dopadne, bez ohledu na to, jak úžasné máš důkazy.")
             
             if st.button("🎰 Roztočit justiční ruletu", key="btn_ruleta"):
                 vysledky = [
@@ -357,29 +363,95 @@ with left_col:
 
         with tab5:
             st.subheader("💸 Kalkulačka zákonných úroků z prodlení")
-            st.write("Rychlý výpočet úroků podle nařízení vlády č. 351/2013 Sb. (navázáno na repo sazbu ČNB + 8 %)")
             
             u_jistina = st.number_input("Dlužná jistina (Kč):", value=50000, step=1000, key="u_jistina")
             u_od = st.date_input("Počátek prodlení (první den po splatnosti):", date(2025, 1, 1), key="u_od")
             u_do = st.date_input("Konec prodlení (případně dnešní den):", date.today(), key="u_do")
             
-            # Sazba pro zjednodušení simuluje aktuální průměrný zákonný standard (~ 13.25 % ročně)
             sazba_anual = 0.1325 
             
             if u_od < u_do:
                 dny_prodleni = (u_do - u_od).days
-                # Výpočet: Jistina * Sazba * (Počet dní / 365)
                 vypocteny_urok = u_jistina * sazba_anual * (dny_prodleni / 365.0)
                 celkem_s_urokem = u_jistina + vypocteny_urok
                 
                 st.info(f"Počet dní v prodlení: **{dny_prodleni} dní**")
                 st.metric(label="Vypočtený zákonný úrok", value=f"{vypocteny_urok:,.2f} Kč")
                 st.metric(label="Celková pohledávka s úrokem", value=f"{celkem_s_urokem:,.2f} Kč")
-                
-                text_petitu = f"Žalovaný je povinen zaplatit žalobci jistinu ve výši {u_jistina:,.2f} Kč spolu se zákonným úrokem z prodlení ve výši {sazba_anual*100:.2f} % ročně z částky {u_jistina:,.2f} Kč za období od {u_od.strftime('%d. %m. %Y')} do zaplacení."
-                st.text_area("Formulace do žalobního petitu:", value=text_petitu, height=100)
             else:
                 st.error("Chyba: Počátek prodlení musí být dříve než konec prodlení.")
+
+        with tab6:
+            st.subheader("📋 Manažer lidských zdrojů (Úkolníček)")
+            st.write("Vyber si oběť a přiřaď jí práci. Ať se v té kanceláři neflákají.")
+            
+            col_z_roleta, col_z_mezera = st.columns([1, 2])
+            with col_z_roleta:
+                vybrany_makac = st.selectbox("Vyber člověka:", ["Jaroslav", "Petr", "Natálie", "Pavla"])
+            
+            st.markdown(f"### Úkoly pro osobu: **{vybrany_makac}**")
+            
+            # Formulář pro přidání úkolu
+            with st.form(key=f"form_ukol_{vybrany_makac}"):
+                c1, c2 = st.columns([3, 1])
+                novy_ukol_text = c1.text_input("Zadej nový úkol:")
+                novy_ukol_termin = c2.selectbox("Termín dodání:", ["Dnes", "Zítra", "Tento týden", "Příští týden"])
+                
+                if st.form_submit_button("Přidat úkol"):
+                    if novy_ukol_text.strip() != "":
+                        st.session_state.ukoly[vybrany_makac].append({
+                            "text": novy_ukol_text, 
+                            "termin": novy_ukol_termin, 
+                            "hotovo": False
+                        })
+                        st.success(f"Úkol pro {vybrany_makac} byl přidán!")
+                        st.rerun()
+                    else:
+                        st.warning("Musíš ten úkol nejdřív napsat, prázdný formulář jim práci nepřidá.")
+            
+            st.markdown("---")
+            
+            # Zobrazení aktuálních úkolů
+            if not st.session_state.ukoly[vybrany_makac]:
+                st.info(f"Uf, {vybrany_makac} má prázdný stůl. Asi čas mu hodit další spis.")
+            else:
+                for idx, ukol in enumerate(st.session_state.ukoly[vybrany_makac]):
+                    uc1, uc2, uc3 = st.columns([0.1, 0.7, 0.2])
+                    
+                    # Checkbox pro odškrtnutí
+                    je_hotovo = uc1.checkbox("", value=ukol["hotovo"], key=f"chk_{vybrany_makac}_{idx}")
+                    
+                    # Logika uložení stavu
+                    if je_hotovo != ukol["hotovo"]:
+                        st.session_state.ukoly[vybrany_makac][idx]["hotovo"] = je_hotovo
+                        st.rerun()
+                    
+                    # Zobrazení textu a termínu
+                    if je_hotovo:
+                        uc2.markdown(f"~~{ukol['text']}~~")
+                        uc3.caption(f"~~🗓️ {ukol['termin']}~~ ✅")
+                    else:
+                        uc2.markdown(f"**{ukol['text']}**")
+                        
+                        # Barevný indikátor u termínu
+                        if ukol["termin"] == "Dnes":
+                            uc3.error(f"🗓️ {ukol['termin']}")
+                        elif ukol["termin"] == "Zítra":
+                            uc3.warning(f"🗓️ {ukol['termin']}")
+                        else:
+                            uc3.info(f"🗓️ {ukol['termin']}")
+
+                # Tlačítko na vyčištění hotových úkolů
+                st.markdown("")
+                if st.button(f"🗑️ Smazat hotové úkoly ({vybrany_makac})", key=f"btn_smazat_{vybrany_makac}"):
+                    puvodni_pocet = len(st.session_state.ukoly[vybrany_makac])
+                    st.session_state.ukoly[vybrany_makac] = [u for u in st.session_state.ukoly[vybrany_makac] if not u["hotovo"]]
+                    novy_pocet = len(st.session_state.ukoly[vybrany_makac])
+                    
+                    if puvodni_pocet > novy_pocet:
+                        st.rerun()
+                    else:
+                        st.warning("Nejsou tu žádné hotové úkoly ke smazání.")
 
     # --- DOMŮ ---
     else:
