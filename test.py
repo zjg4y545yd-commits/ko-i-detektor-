@@ -88,7 +88,7 @@ with left_col:
 
         if st.session_state.pexeso_hotovo:
             st.balloons()
-            st.success("GRATULUJI! Vyřešil jsi Pexeso a získal 40 bodů!")
+            st.success("GRATULUJI! Vyřešil jsi pexeso pro malé žebráky, vyhráváš mixér!")
         else:
             for row in range(0, 8, 4):
                 cols = st.columns(4)
