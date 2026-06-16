@@ -1,9 +1,39 @@
 import streamlit as st
 import random
+import json
+import os
+import pandas as pd
+from datetime import date
 
-# 1. Nastavení stránky
+# 1. Nastavení stránky (musí být vždy na začátku)
 st.set_page_config(layout="wide")
 st.title("🐱 Kočičí detektor ti zmrde")
+
+# --- ZÁZNAM NÁVŠTĚVNOSTI ---
+SOUBOR = "navstevnost.json"
+dnes = str(date.today())
+
+def nacti_nebo_vytvor_data():
+    if os.path.exists(SOUBOR):
+        with open(SOUBOR, "r") as f:
+            return json.load(f)
+    else:
+        # Fiktivní historie pro předchozí dny, ať graf rovnou nějak vypadá
+        return {
+            "2026-06-12": 15,
+            "2026-06-13": 42,
+            "2026-06-14": 28,
+            "2026-06-15": 73
+        }
+
+data_navstevnosti = nacti_nebo_vytvor_data()
+
+# Započítáme návštěvu, jen pokud to v této relaci (session) ještě neproběhlo
+if "zapoteno" not in st.session_state:
+    data_navstevnosti[dnes] = data_navstevnosti.get(dnes, 0) + 1
+    with open(SOUBOR, "w") as f:
+        json.dump(data_navstevnosti, f)
+    st.session_state.zapoteno = True
 
 # 2. Inicializace stavu
 if "pravy_vyber" not in st.session_state: st.session_state.pravy_vyber = None
@@ -29,6 +59,7 @@ with right_col:
     if st.button("KALKULAČKA", use_container_width=True, key="btn_kalk"): st.session_state.pravy_vyber = "kocka1"
     if st.button("FRANTIŠEK ŘEDITEL", use_container_width=True, key="btn_frantisek"): st.session_state.pravy_vyber = "kocka2"
     if st.button("PEXESO", use_container_width=True, key="btn_pexeso"): st.session_state.pravy_vyber = "pexeso"
+    if st.button("NÁVŠTĚVNOST", use_container_width=True, key="btn_navstevnost"): st.session_state.pravy_vyber = "navstevnost"
     
     st.markdown("---")
     st.subheader(f"Tvoje body: {st.session_state.body}")
@@ -112,6 +143,20 @@ with left_col:
                                         st.session_state.body = 40
                                         st.rerun()
                             st.rerun()
+
+    # --- NÁVŠTĚVNOST ---
+    elif st.session_state.pravy_vyber == "navstevnost":
+        st.title("📈 Návštěvnost stránky")
+        st.write("Návštěvnost mé naprosté geniality.")
+        
+        # Převod JSON dat do formátu vhodného pro graf (Pandas DataFrame)
+        df = pd.DataFrame(list(data_navstevnosti.items()), columns=['Datum', 'Počet návštěv'])
+        df.set_index('Datum', inplace=True)
+        
+        # Vykreslení grafu
+        st.bar_chart(df)
+        
+        st.success(f"Dneska tě tu navštívilo už {data_navstevnosti.get(dnes, 0)} lidí!")
 
     # --- DOMŮ ---
     else:
