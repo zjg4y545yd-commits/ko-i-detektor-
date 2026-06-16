@@ -245,7 +245,7 @@ with left_col:
         st.title("⚖️ Právnický koutek (Advokátní speciál)")
         st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
         
-        tab1, tab2 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač do právničiny"])
+        tab1, tab2, tab3 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač do právničiny", "📝 Předžalobní buchar"])
         
         with tab1:
             st.subheader("Výpočet procesních lhůt")
@@ -261,13 +261,11 @@ with left_col:
                 ]
             )
             
-            # Výpočet dnů
             if "15 dní" in typ_lhuty:
                 konecna_lhuta = datum_doruceni + pd.Timedelta(days=15)
             elif "2 týdny" in typ_lhuty:
                 konecna_lhuta = datum_doruceni + pd.Timedelta(days=14)
             elif "2 měsíce" in typ_lhuty:
-                # Jednoduchý posun o cca 61 dní pro zjednodušení
                 konecna_lhuta = datum_doruceni + pd.Timedelta(days=61)
                 
             st.info(f"Materiál musí být odeslán nejpozději dne: **{konecna_lhuta.strftime('%d. %m. %Y')}**")
@@ -278,7 +276,7 @@ with left_col:
             st.write("Napiš pravdu na rovinu a kód z toho udělá elegantní právní odstavec do žaloby.")
             
             myslenka = st.selectbox(
-                "Co chceš protistraně nebo soudci reálně vzkázat?",
+                "Co chceš protistraně oder soudci reálně vzkázat?",
                 [
                     "-",
                     "Je to totální idiot a kompletně si vymýšlí",
@@ -302,6 +300,38 @@ with left_col:
             if myslenka != "-":
                 st.success(preklady[myslenka])
                 st.button("Zkopírovat do schránky (mentálně)")
+
+        with tab3:
+            st.subheader("📝 Předžalobní výzva na jedno kliknutí")
+            st.write("Vyplň údaje a vygeneruj strašák, po kterém dlužník okamžitě vyměkne.")
+            
+            p_jmeno = st.text_input("Celé jméno / Název dlužníka:", "Jan Novák", key="pb_jmeno")
+            p_adresa = st.text_input("Adresa / Sídlo dlužníka:", "Uliční 123, 110 00 Praha", key="pb_adresa")
+            p_castka = st.number_input("Dlužná částka (Kč):", value=15000, key="pb_castka")
+            p_duvod = st.text_input("Za co dluží (např. nezaplacená faktura, zpackaná práce):", "neuhrazené faktury za provedené služby", key="pb_duvod")
+            
+            if st.button("🚀 Vygenerovat Předžalobní výzvu", key="pb_generate"):
+                text_vyzvy = f"""
+                **PŘEDŽALOBNÍ VÝZVA K PLNĚNÍ**
+                ตาม § 142a zákona č. 99/1963 Sb., občanský soudní řád (OSŘ)
+                
+                **VÝZVA TELNÍ:**
+                **Žalovaný (Dlužník):** {p_jmeno}, nar. / IČO, bytem/se sídlem {p_adresa}
+                
+                Vážený pane / Vážená paní,
+                
+                tímto Vás formálně vyzývám k dobrovolnému splnění Vašeho dluhu ve výši **{p_castka:,.2f} Kč**, který vznikl z titulu: *{p_duvod}*.
+                
+                Uvedenou částku zašlete nejpozději do **7 dnů** od doručení této výzvy na účet věřitele.
+                
+                Pokud dluh v této lhůtě neuhradíte, berte na vědomí, že záležitost bude neprodleně předána věcně a místně příslušnému soudu k zahájení nalézacího řízení. V takovém případě budete povinen/povinna uhradit nejen jistinu dluhu a zákonný úrok z prodlení, ale rovněž veškeré náklady soudního řízení a právního zastoupení, které mohou mnohonásobně převýšit samotný původní dluh.
+                
+                Tato výzva představuje splnění zákonné podmínky pro přiznání náhrady nákladů řízení ve smyslu § 142a OSŘ.
+                
+                V Praze, dne {date.today().strftime('%d. %m. %Y')}
+                """
+                st.text_area("Zkopíruj si text:", value=text_vyzvy, height=350)
+                st.success("Buchar vygenerován! Zkopíruj to, hoď do datovky a dlužník se posere.")
 
     # --- DOMŮ ---
     else:
