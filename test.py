@@ -5,6 +5,16 @@ import os
 import pandas as pd
 from datetime import date
 
+# --- AUTOMATICKÁ OPRAVA CHYBĚJÍCÍCH KNIHOVEN ---
+try:
+    import yfinance as yf
+except ModuleNotFoundError:
+    import subprocess
+    import sys
+    # Pokud yfinance chybí, Python si ho sám nainstaluje
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "yfinance"])
+    import yfinance as yf
+
 # 1. Nastavení stránky (musí být vždy na začátku)
 st.set_page_config(layout="wide")
 st.title("🐱 Kočičí detektor ti zmrde")
@@ -18,7 +28,6 @@ def nacti_nebo_vytvor_data():
         with open(SOUBOR, "r") as f:
             return json.load(f)
     else:
-        # Fiktivní historie pro předchozí dny, ať graf rovnou nějak vypadá
         return {
             "2026-06-12": 15,
             "2026-06-13": 42,
@@ -28,7 +37,6 @@ def nacti_nebo_vytvor_data():
 
 data_navstevnosti = nacti_nebo_vytvor_data()
 
-# Započítáme návštěvu, jen pokud to v této relaci (session) ještě neproběhlo
 if "zapoteno" not in st.session_state:
     data_navstevnosti[dnes] = data_navstevnosti.get(dnes, 0) + 1
     with open(SOUBOR, "w") as f:
@@ -60,6 +68,7 @@ with right_col:
     if st.button("FRANTIŠEK ŘEDITEL", use_container_width=True, key="btn_frantisek"): st.session_state.pravy_vyber = "kocka2"
     if st.button("PEXESO", use_container_width=True, key="btn_pexeso"): st.session_state.pravy_vyber = "pexeso"
     if st.button("NÁVŠTĚVNOST", use_container_width=True, key="btn_navstevnost"): st.session_state.pravy_vyber = "navstevnost"
+    if st.button("PENÍZKY", use_container_width=True, key="btn_penizky"): st.session_state.pravy_vyber = "penizky"
     
     st.markdown("---")
     st.subheader(f"Tvoje body: {st.session_state.body}")
@@ -147,16 +156,87 @@ with left_col:
     # --- NÁVŠTĚVNOST ---
     elif st.session_state.pravy_vyber == "navstevnost":
         st.title("📈 Návštěvnost stránky")
-        st.write("Návštěvnost mé naprosté geniality.")
+        st.write("Tady vidíš, kolik zoufalců sem už dneska a v minulých dnech zabloudilo.")
         
-        # Převod JSON dat do formátu vhodného pro graf (Pandas DataFrame)
         df = pd.DataFrame(list(data_navstevnosti.items()), columns=['Datum', 'Počet návštěv'])
         df.set_index('Datum', inplace=True)
         
-        # Vykreslení grafu
         st.bar_chart(df)
-        
         st.success(f"Dneska tě tu navštívilo už {data_navstevnosti.get(dnes, 0)} lidí!")
+
+    # --- PENÍZKY (AKCIE) ---
+    elif st.session_state.pravy_vyber == "penizky":
+        st.title("💸 Penízky (Akcie & Krypto)")
+        st.write("Tady máš přehled trhu, ať víš, jestli už kupovat Lambo, nebo jít radši makat.")
+        
+        akcie_seznam = {
+            "Nu Holdings": "NU",
+            "Duolingo": "DUOL",
+            "Nvidia": "NVDA",
+            "Microsoft": "MSFT",
+            "Apple": "AAPL",
+            "Amazon": "AMZN",
+            "Meta": "META",
+            "SoFi Technologies": "SOFI",
+            "Novo Nordisk": "NVO",
+            "PayPal": "PYPL",
+            "ASML Holding": "ASML",
+            "Bitcoin": "BTC-USD"
+        }
+        
+        doporuceni = {
+            "Nu Holdings": "🟢 STRONG BUY (Tohle je jasná volba, sype to!)",
+            "Duolingo": "🟢 BUY (Ta zelená sova tě jinak zabije, kup to)",
+            "Nvidia": "🟢 STRONG BUY (AI boom, kupuj dokud to roste!)",
+            "Microsoft": "🟢 BUY (Wall Street to miluje, stabilní jistota)",
+            "Apple": "🟡 HOLD / Lehký BUY (Čeká se na další hračky od Tima Cooka)",
+            "Amazon": "🟢 BUY (Jeff potřebuje další raketu, podpoř ho)",
+            "Meta": "🟢 BUY (Zuck tě sice sleduje, ale peníze z toho jsou)",
+            "SoFi Technologies": "🟢 BUY (Fintech pro mladé, tohle má velkou budoucnost)",
+            "Novo Nordisk": "🟢 STRONG BUY (Ozempic vládne světu, lidstvo bude líné a tlusté pořád)",
+            "PayPal": "🟡 HOLD (Stará klasika, uvidíme, jestli chytí druhý dech)",
+            "ASML Holding": "🟢 STRONG BUY (Bez jejich mašin nikdo na světě nevyrobí pořádný čip)",
+            "Bitcoin": "🟢 BUY (Čekáme na návrat k historickým maximům, ne?)"
+        }
+        
+        # Převod na list pro jednodušší vykreslování po dvojicích
+        polozky = list(akcie_seznam.items())
+        
+        for i in range(0, len(polozky), 2):
+            cols = st.columns(2)  # Vytvoří 2 sloupce vedle sebe
+            
+            # První graf ve dvojici
+            with cols[0]:
+                nazev, ticker = polozky[i]
+                st.subheader(f"{nazev} ({ticker})")
+                st.markdown(f"**Názor analytiků:** {doporuceni[nazev]}")
+                try:
+                    ticker_data = yf.Ticker(ticker)
+                    hist = ticker_data.history(period="3mo")
+                    if not hist.empty:
+                        st.line_chart(hist['Close'])
+                    else:
+                        st.warning("Data nejsou momentálně dostupná.")
+                except Exception as e:
+                    st.error("Nepodařilo se načíst data.")
+            
+            # Druhý graf ve dvojici (pokud ještě existuje)
+            if i + 1 < len(polozky):
+                with cols[1]:
+                    nazev, ticker = polozky[i+1]
+                    st.subheader(f"{nazev} ({ticker})")
+                    st.markdown(f"**Názor analytiků:** {doporuceni[nazev]}")
+                    try:
+                        ticker_data = yf.Ticker(ticker)
+                        hist = ticker_data.history(period="3mo")
+                        if not hist.empty:
+                            st.line_chart(hist['Close'])
+                        else:
+                            st.warning("Data nejsou momentálně dostupná.")
+                    except Exception as e:
+                        st.error("Nepodařilo se načíst data.")
+            
+            st.markdown("---")
 
     # --- DOMŮ ---
     else:
