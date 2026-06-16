@@ -254,13 +254,14 @@ with left_col:
         st.title("⚖️ Právnický koutek (Advokátní speciál)")
         st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
         
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "⏱️ Kalkulačka lhůt", 
             "🔤 Překladač mluvy", 
             "📝 Předžalobní buchar", 
             "🎲 Justiční ruleta",
             "💸 Úroky z prodlení",
-            "📋 Nástěnka úkolů"
+            "📋 Nástěnka úkolů",
+            "📊 Přehled úkolů"
         ])
         
         with tab1:
@@ -410,11 +411,37 @@ with left_col:
                         st.warning("Musíš ten úkol nejdřív napsat, prázdný formulář jim práci nepřidá.")
             
             st.markdown("---")
+        with tab7:
+             st.subheader("📊 Přehled všech úkolů pro tým")
+            
+            # Definice barev pro jednotlivé lidi
+             barvy = {
+                "Jaroslav": "blue",
+                "Petr": "red",
+                "Natálie": "green",
+                "Pavla": "orange"
+            }
+            
+             for jmeno, ukoly in st.session_state.ukoly.items():
+                # Použijeme st.container s barevným okrajem (pokud verze Streamlit dovoluje) 
+                # nebo jednodušeji přes markdown
+                barva = barvy.get(jmeno, "gray")
+                st.markdown(f"### <span style='color:{barva}'>👤 {jmeno}</span>", unsafe_allow_html=True)
+                
+                if not ukoly:
+                    st.write("Žádné úkoly.")
+                else:
+                    for u in ukoly:
+                        status = "✅ Hotovo" if u["hotovo"] else "⏳ Čeká"
+                        # Zde pouze zobrazujeme, žádné editační prvky
+                        st.markdown(f"- **{u['text']}** (Termín: {u['termin']}) - *{status}*")
+                
+                st.markdown("---")
             
             # Zobrazení aktuálních úkolů
-            if not st.session_state.ukoly[vybrany_makac]:
+             if not st.session_state.ukoly[vybrany_makac]:
                 st.info(f"Uf, {vybrany_makac} má prázdný stůl. Asi čas mu hodit další spis.")
-            else:
+             else:
                 for idx, ukol in enumerate(st.session_state.ukoly[vybrany_makac]):
                     uc1, uc2, uc3 = st.columns([0.1, 0.7, 0.2])
                     
