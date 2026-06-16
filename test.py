@@ -245,7 +245,7 @@ with left_col:
         st.title("⚖️ Právnický koutek (Advokátní speciál)")
         st.write("Profesionální utility pro unavené advokáty a lidi, co se rádi soudí.")
         
-        tab1, tab2, tab3 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač do právničiny", "📝 Předžalobní buchar"])
+        tab1, tab2, tab3, tab4 = st.tabs(["⏱️ Kalkulačka lhůt", "🔤 Překladač mluvy", "📝 Předžalobní buchar", "🎲 Justiční ruleta"])
         
         with tab1:
             st.subheader("Výpočet procesních lhůt")
@@ -276,7 +276,7 @@ with left_col:
             st.write("Napiš pravdu na rovinu a kód z toho udělá elegantní právní odstavec do žaloby.")
             
             myslenka = st.selectbox(
-                "Co chceš protistraně oder soudci reálně vzkázat?",
+                "Co chceš protistraně nebo soudci reálně vzkázat?",
                 [
                     "-",
                     "Je to totální idiot a kompletně si vymýšlí",
@@ -313,7 +313,7 @@ with left_col:
             if st.button("🚀 Vygenerovat Předžalobní výzvu", key="pb_generate"):
                 text_vyzvy = f"""
                 **PŘEDŽALOBNÍ VÝZVA K PLNĚNÍ**
-                ตาม § 142a zákona č. 99/1963 Sb., občanský soudní řád (OSŘ)
+                ve smyslu § 142a zákona č. 99/1963 Sb., občanský soudní řád (OSŘ)
                 
                 **VÝZVA TELNÍ:**
                 **Žalovaný (Dlužník):** {p_jmeno}, nar. / IČO, bytem/se sídlem {p_adresa}
@@ -332,6 +332,22 @@ with left_col:
                 """
                 st.text_area("Zkopíruj si text:", value=text_vyzvy, height=350)
                 st.success("Buchar vygenerován! Zkopíruj to, hoď do datovky a dlužník se posere.")
+                
+        with tab4:
+            st.subheader("🎲 Věštírna: Jakou má dneska soudce náladu?")
+            st.write("Česká justice je loterie. Klikni a zjisti, jak to dneska u soudu reálně dopadne, bez ohledu na to, jak úžasné máš důkazy.")
+            
+            if st.button("🎰 Roztočit justiční ruletu", key="btn_ruleta"):
+                vysledky = [
+                    "⚖️ **Soudce má zítra dovolenou:** Všechno se naslepo odročuje. Můžeš jít domů, smůla.",
+                    "⚖️ **Soudce se ráno pohádal se starou:** Dneska prohraješ i to, že je obloha modrá. Rychle stáhni žalobu a utíkej.",
+                    "⚖️ **Těžká kocovina z plesu právníků:** Rozsudek bude mít 3 odstavce a nebude dávat smysl. Vyhrává ten, kdo u pultíku mluvil tišeji.",
+                    "⚖️ **Dobrá nálada, sluníčko svítí:** Suverénně vyhraješ! ...Ale protistrana se odvolá a potáhne se to další 3 roky.",
+                    "⚖️ **Soudce si zapomněl brýle:** Spoléhá jen na to, co mu nakecá zapisovatelka. Tvoje šance je přesně 50/50.",
+                    "⚖️ **Zaujatost level 1000:** Protistrana má hezčího koncipienta. Tady končíš, sráči."
+                ]
+                st.warning(random.choice(vysledky))
+                st.image("https://media.giphy.com/media/3o7TKSd0EA9zH0kS5q/giphy.gif", width=300)
 
     # --- DOMŮ ---
     else:
