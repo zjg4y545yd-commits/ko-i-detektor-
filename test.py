@@ -12,11 +12,12 @@ st.title("🐱 Kočičí detektor ti zmrde")
 
 # --- ZÁZNAM NÁVŠTĚVNOSTI ---
 SOUBOR = "navstevnost.json"
+UKOLY_SOUBOR = "ukoly.json"
 dnes = str(date.today())
 
 def nacti_nebo_vytvor_data():
     if os.path.exists(SOUBOR):
-        with open(SOUBOR, "r") as f:
+        with open(SOUBOR, "r", encoding="utf-8") as f:
             return json.load(f)
     else:
         return {
@@ -26,12 +27,30 @@ def nacti_nebo_vytvor_data():
             "2026-06-15": 73
         }
 
+# --- FUNKCE PRO PERSISTENCI ÚKOLŮ ---
+def nacti_ukoly():
+    if os.path.exists(UKOLY_SOUBOR):
+        with open(UKOLY_SOUBOR, "r", encoding="utf-8") as f:
+            return json.load(f)
+    else:
+        # Výchozí data, pokud soubor ještě neexistuje
+        return {
+            "Jaroslav": [{"text": "Popsat důkazy k žalobě Nováka", "termin": "Dnes", "hotovo": False}],
+            "Petr": [],
+            "Natálie": [{"text": "Odeslat datovky soudu v Brně", "termin": "Zítra", "hotovo": False}],
+            "Pavla": []
+        }
+
+def uloz_ukoly():
+    with open(UKOLY_SOUBOR, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.ukoly, f, ensure_ascii=False, indent=4)
+
 data_navstevnosti = nacti_nebo_vytvor_data()
 
 # 2. Inicializace stavu
 if "zapoteno" not in st.session_state:
     data_navstevnosti[dnes] = data_navstevnosti.get(dnes, 0) + 1
-    with open(SOUBOR, "w") as f:
+    with open(SOUBOR, "w", encoding="utf-8") as f:
         json.dump(data_navstevnosti, f)
     st.session_state.zapoteno = True
 
@@ -39,14 +58,9 @@ if "pravy_vyber" not in st.session_state: st.session_state.pravy_vyber = None
 if "body" not in st.session_state: st.session_state.body = 0
 if "pexeso_hotovo" not in st.session_state: st.session_state.pexeso_hotovo = False
 
-# Inicializace úkolů pro nástěnku právníků
+# Načtení úkolů ze souboru, aby přežily refresh stránky
 if "ukoly" not in st.session_state:
-    st.session_state.ukoly = {
-        "Jaroslav": [{"text": "Popsat důkazy k žalobě Nováka", "termin": "Dnes", "hotovo": False}],
-        "Petr": [],
-        "Natálie": [{"text": "Odeslat datovky soudu v Brně", "termin": "Zítra", "hotovo": False}],
-        "Pavla": []
-    }
+    st.session_state.ukoly = nacti_ukoly()
 
 # Funkce pro body a trest
 def pricti_body(key, hodnota):
@@ -405,43 +419,18 @@ with left_col:
                             "termin": novy_ukol_termin, 
                             "hotovo": False
                         })
+                        uloz_ukoly()  # Zápis do souboru
                         st.success(f"Úkol pro {vybrany_makac} byl přidán!")
                         st.rerun()
                     else:
                         st.warning("Musíš ten úkol nejdřív napsat, prázdný formulář jim práci nepřidá.")
             
             st.markdown("---")
-        with tab7:
-             st.subheader("📊 Přehled všech úkolů pro tým")
             
-            # Definice barev pro jednotlivé lidi
-             barvy = {
-                "Jaroslav": "blue",
-                "Petr": "red",
-                "Natálie": "green",
-                "Pavla": "orange"
-            }
-            
-             for jmeno, ukoly in st.session_state.ukoly.items():
-                # Použijeme st.container s barevným okrajem (pokud verze Streamlit dovoluje) 
-                # nebo jednodušeji přes markdown
-                barva = barvy.get(jmeno, "gray")
-                st.markdown(f"### <span style='color:{barva}'>👤 {jmeno}</span>", unsafe_allow_html=True)
-                
-                if not ukoly:
-                    st.write("Žádné úkoly.")
-                else:
-                    for u in ukoly:
-                        status = "✅ Hotovo" if u["hotovo"] else "⏳ Čeká"
-                        # Zde pouze zobrazujeme, žádné editační prvky
-                        st.markdown(f"- **{u['text']}** (Termín: {u['termin']}) - *{status}*")
-                
-                st.markdown("---")
-            
-            # Zobrazení aktuálních úkolů
-             if not st.session_state.ukoly[vybrany_makac]:
+            # Správa a zobrazení úkolů pro vybraného makače (přesunuto správně do tab6)
+            if not st.session_state.ukoly[vybrany_makac]:
                 st.info(f"Uf, {vybrany_makac} má prázdný stůl. Asi čas mu hodit další spis.")
-             else:
+            else:
                 for idx, ukol in enumerate(st.session_state.ukoly[vybrany_makac]):
                     uc1, uc2, uc3 = st.columns([0.1, 0.7, 0.2])
                     
@@ -451,6 +440,7 @@ with left_col:
                     # Logika uložení stavu
                     if je_hotovo != ukol["hotovo"]:
                         st.session_state.ukoly[vybrany_makac][idx]["hotovo"] = je_hotovo
+                        uloz_ukoly()  # Zápis do souboru při odškrtnutí
                         st.rerun()
                     
                     # Zobrazení textu a termínu
@@ -473,12 +463,48 @@ with left_col:
                 if st.button(f"🗑️ Smazat hotové úkoly ({vybrany_makac})", key=f"btn_smazat_{vybrany_makac}"):
                     puvodni_pocet = len(st.session_state.ukoly[vybrany_makac])
                     st.session_state.ukoly[vybrany_makac] = [u for u in st.session_state.ukoly[vybrany_makac] if not u["hotovo"]]
-                    novy_pocet = len(st.session_state.ukoly[vybrany_makac])
+                    uloz_ukoly()  # Zápis do souboru po promazání
                     
-                    if puvodni_pocet > novy_pocet:
+                    if puvodni_pocet > len(st.session_state.ukoly[vybrany_makac]):
                         st.rerun()
                     else:
                         st.warning("Nejsou tu žádné hotové úkoly ke smazání.")
+
+        with tab7:
+            st.subheader("📊 Přehled všech úkolů pro tým")
+            st.write("Kompletní tabulka rozdělených úkolů napříč celou advokátní kanceláří.")
+            
+            # Transformace slovníku úkolů na plochý list pro Pandas DataFrame
+            vsechny_ukoly_list = []
+            for jmeno, ukoly_seznam in st.session_state.ukoly.items():
+                for u in ukoly_seznam:
+                    vsechny_ukoly_list.append({
+                        "Osoba": jmeno,
+                        "Zadání úkolu": u["text"],
+                        "Termín plnění": u["termin"],
+                        "Stav": "✅ Hotovo" if u["hotovo"] else "⏳ Čeká"
+                    })
+            
+            if vsechny_ukoly_list:
+                df_ukoly = pd.DataFrame(vsechny_ukoly_list)
+                
+                # Funkce pro stylování barev jmen v tabulce podle tvého původního klíče
+                def obarvi_jmena(val):
+                    barvy = {
+                        "Jaroslav": "color: #1f77b4; font-weight: bold;", # Modrá
+                        "Petr": "color: #d62728; font-weight: bold;",     # Červená
+                        "Natálie": "color: #2ca02c; font-weight: bold;",  # Zelená
+                        "Pavla": "color: #ff7f0e; font-weight: bold;"     # Oranžová
+                    }
+                    return barvy.get(val, "color: black;")
+                
+                # Aplikace stylů na sloupec "Osoba"
+                styled_df = df_ukoly.style.map(obarvi_jmena, subset=["Osoba"])
+                
+                # Vykreslení krásné grafické tabulky roztažené na šířku
+                st.dataframe(styled_df, use_container_width=True, hide_index=True)
+            else:
+                st.info("Aktuálně nejsou v celém týmu zadány žádné úkoly. Všichni mají čistý stůl!")
 
     # --- DOMŮ ---
     else:
