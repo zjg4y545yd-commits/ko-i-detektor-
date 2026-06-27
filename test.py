@@ -119,16 +119,22 @@ with left_col:
                 info = st.session_state.klimatizace[kod]
                 st.success(f"Nalezena jednotka: {info['model']}")
                 
-                d_inst = datetime.strptime(info['datum_instalace'], '%Y-%m-%d').date()
-                dalsi_servis = d_inst + timedelta(days=365)
+                try:
+                    d_inst = datetime.strptime(info['datum_instalace'], '%Y-%m-%d').date()
+                except ValueError:
+                    d_inst = date.today()
+
+                interval = info.get("interval_udrzby", 365)
+                dalsi_servis = d_inst + timedelta(days=interval)
                 zbyva = (dalsi_servis - date.today()).days
                 
                 stav = info.get("stav", "V provozu")
                 st.info(f"**Aktuální stav:** {stav}")
                 
-                st.metric("Zbývá dní do údržby", f"{zbyva} dní")
-                st.write(f"**Telefon zákazníka:** {info['telefon']}")
-                st.write(f"**Poznámky/Filtry:** {info['pozn']}")
+                st.metric(f"Zbývá dní do údržby (Interval: {interval} dní)", f"{zbyva} dní")
+                st.write(f"**Telefon zákazníka:** {info.get('telefon', '')}")
+                st.write(f"**Poznámky/Filtry:** {info.get('pozn', '')}")
+                st.write(f"**Údržba - chemie:** {info.get('udrzba_chemie', 'Neuvedeno')}")
                 
                 if zbyva <= 30:
                     st.warning("⚠️ Čas na servis! Je potřeba naplánovat údržbu.")
@@ -138,12 +144,17 @@ with left_col:
                     model = st.text_input("Model zařízení")
                     tel = st.text_input("Telefon zákazníka")
                     pozn = st.text_area("Poznámky k instalaci / Filtry")
+                    interval = st.number_input("Interval údržby (dny)", min_value=1, value=365)
+                    chemie = st.text_input("Údržba - chemie (např. jaká chemie byla/bude použita)")
+
                     if st.form_submit_button("Uložit do databáze"):
                         st.session_state.klimatizace[kod] = {
                             "model": model, 
                             "telefon": tel, 
                             "pozn": pozn, 
                             "datum_instalace": str(date.today()),
+                            "interval_udrzby": interval,
+                            "udrzba_chemie": chemie,
                             "stav": "V provozu"
                         }
                         uloz_klimatizace(st.session_state.klimatizace)
@@ -153,48 +164,65 @@ with left_col:
     # --- SEKCE: KLIMATIZACE EDITACE (PŘEHLED A ÚPRAVY) ---
     elif st.session_state.pravy_vyber == "klima_edit":
         st.header("🛠️ Editace a přehled klimatizací")
-        st.write("Zde vidíš všechny zaregistrované klimatizace. Pro změnu stavu nebo smazání zadej heslo.")
+        st.write("Zde vidíš všechny zaregistrované klimatizace. Můžeš libovolně upravovat data, poznámky, intervaly údržby nebo mazat (zadej heslo '1234').")
         
         if not st.session_state.klimatizace:
             st.info("Zatím nejsou v databázi žádné klimatizace.")
         else:
             for kod, info in list(st.session_state.klimatizace.items()):
                 with st.expander(f"🆔 ID: {kod} | {info['model']} | Stav: {info.get('stav', 'V provozu')}"):
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        st.write(f"**Datum instalace:** {info['datum_instalace']}")
-                        st.write(f"**Telefon:** {info['telefon']}")
-                        st.write(f"**Poznámky:** {info['pozn']}")
-                    
-                    with c2:
-                        with st.form(f"edit_form_{kod}"):
+                    with st.form(f"edit_form_{kod}"):
+                        c1, c2 = st.columns(2)
+                        
+                        with c1:
+                            # Ošetření pro stará data bez správného formátu data
+                            try:
+                                akt_datum = datetime.strptime(info.get('datum_instalace', str(date.today())), '%Y-%m-%d').date()
+                            except ValueError:
+                                akt_datum = date.today()
+
+                            nove_datum = st.date_input("Datum instalace", value=akt_datum)
+                            novy_tel = st.text_input("Telefon", value=info.get('telefon', ''))
+                            novy_pozn = st.text_area("Poznámky", value=info.get('pozn', ''))
+                        
+                        with c2:
+                            novy_interval = st.number_input("Interval údržby (ve dnech)", min_value=1, value=info.get('interval_udrzby', 365))
+                            nova_chemie = st.text_input("Údržba - chemie", value=info.get('udrzba_chemie', ''))
+                            
                             aktualni_stav = info.get("stav", "V provozu")
                             moznosti = ["V provozu", "V procesu", "Hotovo"]
                             novy_stav = st.selectbox("Upravit stav servisu:", moznosti, index=moznosti.index(aktualni_stav) if aktualni_stav in moznosti else 0)
                             
                             heslo = st.text_input("Heslo (pro uložení/smazání):", type="password")
-                            
-                            btn1, btn2 = st.columns(2)
-                            ulozit = btn1.form_submit_button("Uložit změny")
-                            smazat = btn2.form_submit_button("🗑️ Smazat")
-                            
-                            if ulozit:
-                                if heslo == "1234":
-                                    st.session_state.klimatizace[kod]["stav"] = novy_stav
-                                    uloz_klimatizace(st.session_state.klimatizace)
-                                    st.success("Stav úspěšně aktualizován!")
-                                    st.rerun()
-                                else:
-                                    st.error("❌ Špatné heslo!")
-                            
-                            if smazat:
-                                if heslo == "1234":
-                                    del st.session_state.klimatizace[kod]
-                                    uloz_klimatizace(st.session_state.klimatizace)
-                                    st.warning(f"Záznam ID {kod} byl smazán.")
-                                    st.rerun()
-                                else:
-                                    st.error("❌ Špatné heslo!")
+                        
+                        btn1, btn2, btn3 = st.columns([1, 1, 2])
+                        ulozit = btn1.form_submit_button("Uložit změny")
+                        smazat = btn2.form_submit_button("🗑️ Smazat")
+                        
+                        if ulozit:
+                            if heslo == "1234":
+                                # Aktualizace slovníku
+                                st.session_state.klimatizace[kod]["datum_instalace"] = str(nove_datum)
+                                st.session_state.klimatizace[kod]["telefon"] = novy_tel
+                                st.session_state.klimatizace[kod]["pozn"] = novy_pozn
+                                st.session_state.klimatizace[kod]["interval_udrzby"] = novy_interval
+                                st.session_state.klimatizace[kod]["udrzba_chemie"] = nova_chemie
+                                st.session_state.klimatizace[kod]["stav"] = novy_stav
+                                
+                                uloz_klimatizace(st.session_state.klimatizace)
+                                st.success("Záznam úspěšně aktualizován!")
+                                st.rerun()
+                            else:
+                                st.error("❌ Špatné heslo pro uložení!")
+                        
+                        if smazat:
+                            if heslo == "1234":
+                                del st.session_state.klimatizace[kod]
+                                uloz_klimatizace(st.session_state.klimatizace)
+                                st.warning(f"Záznam ID {kod} byl kompletně smazán.")
+                                st.rerun()
+                            else:
+                                st.error("❌ Špatné heslo pro smazání!")
 
     # --- PŮVODNÍ ZÁLOŽKY ---
     elif st.session_state.pravy_vyber == "kocka1":
