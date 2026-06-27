@@ -200,7 +200,7 @@ with left_col:
                         smazat = btn2.form_submit_button("🗑️ Smazat")
                         
                         if ulozit:
-                            if heslo == "1234":
+                            if heslo == "4321":
                                 # Aktualizace slovníku
                                 st.session_state.klimatizace[kod]["datum_instalace"] = str(nove_datum)
                                 st.session_state.klimatizace[kod]["telefon"] = novy_tel
