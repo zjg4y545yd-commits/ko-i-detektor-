@@ -3,7 +3,7 @@ import random
 import json
 import os
 import pandas as pd
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import yfinance as yf
 import calendar
 
@@ -11,9 +11,10 @@ import calendar
 st.set_page_config(layout="wide")
 st.title("🐱 Kočičí detektor ti zmrde")
 
-# --- ZÁZNAM NÁVŠTĚVNOSTI ---
+# --- ZÁZNAM NÁVŠTĚVNOSTI A SOUBORY ---
 SOUBOR = "navstevnost.json"
 UKOLY_SOUBOR = "ukoly.json"
+KLIMATIZACE_SOUBOR = "klimatizace.json"
 dnes = str(date.today())
 
 def nacti_nebo_vytvor_data():
@@ -28,7 +29,6 @@ def nacti_nebo_vytvor_data():
             "2026-06-15": 73
         }
 
-# --- FUNKCE PRO PERSISTENCI ÚKOLŮ ---
 def nacti_ukoly():
     if os.path.exists(UKOLY_SOUBOR):
         with open(UKOLY_SOUBOR, "r", encoding="utf-8") as f:
@@ -45,6 +45,16 @@ def uloz_ukoly():
     with open(UKOLY_SOUBOR, "w", encoding="utf-8") as f:
         json.dump(st.session_state.ukoly, f, ensure_ascii=False, indent=4)
 
+def nacti_klimatizace():
+    if os.path.exists(KLIMATIZACE_SOUBOR):
+        with open(KLIMATIZACE_SOUBOR, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def uloz_klimatizace(data):
+    with open(KLIMATIZACE_SOUBOR, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
 data_navstevnosti = nacti_nebo_vytvor_data()
 
 # 2. Inicializace stavu
@@ -60,6 +70,8 @@ if "pexeso_hotovo" not in st.session_state: st.session_state.pexeso_hotovo = Fal
 
 if "ukoly" not in st.session_state:
     st.session_state.ukoly = nacti_ukoly()
+if "klimatizace" not in st.session_state:
+    st.session_state.klimatizace = nacti_klimatizace()
 
 def pricti_body(key, hodnota):
     if st.session_state[key] == hodnota and not st.session_state.get(f"{key}_done", False):
@@ -76,6 +88,8 @@ left_col, right_col = st.columns([3, 1])
 with right_col:
     st.subheader("Další menu")
     if st.button("DOMŮ", use_container_width=True, key="btn_domu"): st.session_state.pravy_vyber = None
+    if st.button("KLIMATIZACE", use_container_width=True, key="btn_klima"): st.session_state.pravy_vyber = "klima"
+    if st.button("KLIMATIZACE EDITACE", use_container_width=True, key="btn_klima_edit"): st.session_state.pravy_vyber = "klima_edit"
     if st.button("KALKULAČKA", use_container_width=True, key="btn_kalk"): st.session_state.pravy_vyber = "kocka1"
     if st.button("FRANTIŠEK ŘEDITEL", use_container_width=True, key="btn_frantisek"): st.session_state.pravy_vyber = "kocka2"
     if st.button("PEXESO", use_container_width=True, key="btn_pexeso"): st.session_state.pravy_vyber = "pexeso"
@@ -93,7 +107,97 @@ with right_col:
         st.rerun()
 
 with left_col:
-    if st.session_state.pravy_vyber == "kocka1":
+    # --- SEKCE: KLIMATIZACE (HLEDÁNÍ A PŘIDÁVÁNÍ) ---
+    if st.session_state.pravy_vyber == "klima":
+        st.header("❄️ Správa Klimatizací")
+        st.write("Zadej ID štítku pro vyhledání nebo přidání klimatizace.")
+        
+        kod = st.text_input("ID štítku (např. 1, 2, ...):")
+        
+        if kod:
+            if kod in st.session_state.klimatizace:
+                info = st.session_state.klimatizace[kod]
+                st.success(f"Nalezena jednotka: {info['model']}")
+                
+                d_inst = datetime.strptime(info['datum_instalace'], '%Y-%m-%d').date()
+                dalsi_servis = d_inst + timedelta(days=365)
+                zbyva = (dalsi_servis - date.today()).days
+                
+                stav = info.get("stav", "V provozu")
+                st.info(f"**Aktuální stav:** {stav}")
+                
+                st.metric("Zbývá dní do údržby", f"{zbyva} dní")
+                st.write(f"**Telefon zákazníka:** {info['telefon']}")
+                st.write(f"**Poznámky/Filtry:** {info['pozn']}")
+                
+                if zbyva <= 30:
+                    st.warning("⚠️ Čas na servis! Je potřeba naplánovat údržbu.")
+            else:
+                st.info("Toto ID není v databázi. Vyplň údaje pro novou instalaci:")
+                with st.form("nova_klima"):
+                    model = st.text_input("Model zařízení")
+                    tel = st.text_input("Telefon zákazníka")
+                    pozn = st.text_area("Poznámky k instalaci / Filtry")
+                    if st.form_submit_button("Uložit do databáze"):
+                        st.session_state.klimatizace[kod] = {
+                            "model": model, 
+                            "telefon": tel, 
+                            "pozn": pozn, 
+                            "datum_instalace": str(date.today()),
+                            "stav": "V provozu"
+                        }
+                        uloz_klimatizace(st.session_state.klimatizace)
+                        st.success("Klimatizace uložena!")
+                        st.rerun()
+
+    # --- SEKCE: KLIMATIZACE EDITACE (PŘEHLED A ÚPRAVY) ---
+    elif st.session_state.pravy_vyber == "klima_edit":
+        st.header("🛠️ Editace a přehled klimatizací")
+        st.write("Zde vidíš všechny zaregistrované klimatizace. Pro změnu stavu nebo smazání zadej heslo.")
+        
+        if not st.session_state.klimatizace:
+            st.info("Zatím nejsou v databázi žádné klimatizace.")
+        else:
+            for kod, info in list(st.session_state.klimatizace.items()):
+                with st.expander(f"🆔 ID: {kod} | {info['model']} | Stav: {info.get('stav', 'V provozu')}"):
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.write(f"**Datum instalace:** {info['datum_instalace']}")
+                        st.write(f"**Telefon:** {info['telefon']}")
+                        st.write(f"**Poznámky:** {info['pozn']}")
+                    
+                    with c2:
+                        with st.form(f"edit_form_{kod}"):
+                            aktualni_stav = info.get("stav", "V provozu")
+                            moznosti = ["V provozu", "V procesu", "Hotovo"]
+                            novy_stav = st.selectbox("Upravit stav servisu:", moznosti, index=moznosti.index(aktualni_stav) if aktualni_stav in moznosti else 0)
+                            
+                            heslo = st.text_input("Heslo (pro uložení/smazání):", type="password")
+                            
+                            btn1, btn2 = st.columns(2)
+                            ulozit = btn1.form_submit_button("Uložit změny")
+                            smazat = btn2.form_submit_button("🗑️ Smazat")
+                            
+                            if ulozit:
+                                if heslo == "1234":
+                                    st.session_state.klimatizace[kod]["stav"] = novy_stav
+                                    uloz_klimatizace(st.session_state.klimatizace)
+                                    st.success("Stav úspěšně aktualizován!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Špatné heslo!")
+                            
+                            if smazat:
+                                if heslo == "1234":
+                                    del st.session_state.klimatizace[kod]
+                                    uloz_klimatizace(st.session_state.klimatizace)
+                                    st.warning(f"Záznam ID {kod} byl smazán.")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Špatné heslo!")
+
+    # --- PŮVODNÍ ZÁLOŽKY ---
+    elif st.session_state.pravy_vyber == "kocka1":
         st.header("🐱 Kočičí kalkulačka")
         st.video("https://www.youtube.com/watch?v=fWcKji80qns", autoplay=True)
         if "vysledek" not in st.session_state: st.session_state.vysledek = 0
@@ -211,12 +315,10 @@ with left_col:
                 vykresli_akcii(cols[1], polozky[i+1][0], polozky[i+1][1])
             st.markdown("---")
 
-    # --- NOVÁ ZÁLOŽKA: AKCIE 2.0 ---
     elif st.session_state.pravy_vyber == "akcie2":
         st.title("🚀 AKCIE 2.0 - Terminál na tisk peněz")
         st.write("Tohle je tvůj osobní nástroj pro hledání extrémních slev na trhu a budování bohatství.")
 
-        # DATABÁZE HLOUBKOVÝCH ANALÝZ PRO OBLÍBENÉ AKCIE
         analyzy_db = {
             "AAPL": {
                 "nazev": "Apple Inc.",
@@ -367,7 +469,6 @@ with left_col:
                         sma200 = hist_hledany['Close'].tail(200).mean()
                         propad_od_maxima = ((cena_ted - max_1y) / max_1y) * 100
                         
-                        # --- HORNÍ METRIKY A GRAF ---
                         c1, c2, c3, c4 = st.columns(4)
                         c1.metric("Aktuální cena", f"${cena_ted:.2f}", f"{propad_od_maxima:.2f}% od ATH")
                         c2.metric("SMA 50 (Krátkodobý trend)", f"${sma50:.2f}")
@@ -394,11 +495,9 @@ with left_col:
                         st.write(f"**Jakou zadat objednávku:** {taktika}")
                         st.line_chart(hist_hledany['Close'])
                         
-                        # --- 🕵️ HLOUBKOVÁ ANALÝZA ---
                         st.markdown(f"---")
                         st.markdown(f"### 🕵️ Hloubkový fundamentální a AI rozbor pro: **{hledany}**")
                         
-                        # Zjistíme, jestli máme ticker ve vlastní premium databázi
                         if hledany in analyzy_db:
                             data = analyzy_db[hledany]
                             st.write(f"*(Data načtena z tvé prémiové databáze zlatých vajec)*")
@@ -421,11 +520,9 @@ with left_col:
                                 st.markdown(f"**❌ Mínusy**")
                                 for m in data["minusy"]: st.markdown(f"- {m}")
                         
-                        # Pokud není v databázi, vygenerujeme data dynamicky z yfinance z Wall Street
                         else:
                             st.write(f"*(Automatická Live AI analýza z Wall Street pro neznámý ticker)*")
                             
-                            # Bezpečné vytahování dat z YF info
                             rev_growth = info.get("revenueGrowth", "N/A")
                             profit_margin = info.get("profitMargins", "N/A")
                             if rev_growth != "N/A": rev_growth = f"{rev_growth*100:.1f} %"
@@ -688,93 +785,3 @@ with left_col:
             if st.button("test", key="btn_iq"):
                 if inteligence > 160: st.success(f"Ahoj {jmeno}! Jsi chytřejší jak labrador, gratuluji!")
                 else: st.warning(f"Ahoj {jmeno}, tvoje IQ je tak zasraně v hajzlu, že nemám slov")
-import streamlit as st
-import random
-import json
-import os
-import pandas as pd
-from datetime import date, datetime, timedelta
-import yfinance as yf
-import calendar
-
-# --- NASTAVENÍ STRÁNKY ---
-st.set_page_config(layout="wide")
-st.title("🐱 Kočičí detektor a Servisní manažer")
-
-# --- SOUBORY ---
-SOUBOR = "navstevnost.json"
-UKOLY_SOUBOR = "ukoly.json"
-KLIMATIZACE_SOUBOR = "klimatizace.json"
-dnes = str(date.today())
-
-# --- POMOCNÉ FUNKCE PRO DATA ---
-def nacti_json(soubor, default_data):
-    if os.path.exists(soubor):
-        with open(soubor, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return default_data
-
-def uloz_json(soubor, data):
-    with open(soubor, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-
-# Inicializace stavu
-if "ukoly" not in st.session_state: st.session_state.ukoly = nacti_json(UKOLY_SOUBOR, {"Jaroslav": []})
-if "klimatizace" not in st.session_state: st.session_state.klimatizace = nacti_json(KLIMATIZACE_SOUBOR, {})
-if "pravy_vyber" not in st.session_state: st.session_state.pravy_vyber = None
-if "body" not in st.session_state: st.session_state.body = 0
-
-# --- SEKCE KLIMATIZACE ---
-def sekce_klimatizace():
-    st.header("❄️ Správa Klimatizací")
-    st.write("Zadej ID štítku pro vyhledání nebo přidání klimatizace.")
-    
-    kod = st.text_input("ID štítku (např. 1, 2, ...):")
-    
-    if kod:
-        if kod in st.session_state.klimatizace:
-            # KLIMA JIŽ EXISTUJE
-            info = st.session_state.klimatizace[kod]
-            st.success(f"Nalezena jednotka: {info['model']}")
-            
-            d_inst = datetime.strptime(info['datum_instalace'], '%Y-%m-%d').date()
-            dalsi_servis = d_inst + timedelta(days=365)
-            zbyva = (dalsi_servis - date.today()).days
-            
-            st.metric("Zbývá dní do údržby", f"{zbyva} dní")
-            st.write(f"**Telefon zákazníka:** {info['telefon']}")
-            st.write(f"**Poznámky/Filtry:** {info['pozn']}")
-            
-            if zbyva <= 30:
-                st.warning("⚠️ Čas na servis! Je potřeba naplánovat údržbu.")
-        else:
-            # NOVÁ KLIMA
-            st.info("Toto ID není v databázi. Vyplň údaje pro novou instalaci:")
-            with st.form("nova_klima"):
-                model = st.text_input("Model zařízení")
-                tel = st.text_input("Telefon zákazníka")
-                pozn = st.text_area("Poznámky k instalaci / Filtry")
-                if st.form_submit_button("Uložit do databáze"):
-                    st.session_state.klimatizace[kod] = {
-                        "model": model, 
-                        "telefon": tel, 
-                        "pozn": pozn, 
-                        "datum_instalace": str(date.today())
-                    }
-                    uloz_json(KLIMATIZACE_SOUBOR, st.session_state.klimatizace)
-                    st.success("Klimatizace uložena!")
-                    st.rerun()
-
-# --- ZBYTEK TVÉHO PŮVODNÍHO KÓDU ---
-# (Zde by bylo všechno ostatní, co jsi měl v souboru test.py)
-# Pro zkrácení zde uvádím jen tvé menu pro přidání tlačítka KLIMATIZACE:
-
-with right_col: # Předpokládám, že toto je tvůj pravý sloupec
-    st.subheader("Menu")
-    if st.button("KLIMATIZACE", use_container_width=True): st.session_state.pravy_vyber = "klima"
-    # ... (tady nech všechny tvoje původní st.button pro Kalkulačku, Pexeso atd.)
-
-with left_col:
-    if st.session_state.pravy_vyber == "klima":
-        sekce_klimatizace()
-    # ... (tady nech všechny tvoje původní if/elif sekce)
