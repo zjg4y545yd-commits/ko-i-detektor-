@@ -1,6 +1,6 @@
 streamlit
 streamlit-webrtc
 opencv-python-headless
+pyzbar-wheel
 yfinance
 pandas
-pyzbar
