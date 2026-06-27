@@ -164,7 +164,7 @@ with left_col:
     # --- SEKCE: KLIMATIZACE EDITACE (PŘEHLED A ÚPRAVY) ---
     elif st.session_state.pravy_vyber == "klima_edit":
         st.header("🛠️ Editace a přehled klimatizací")
-        st.write("Zde vidíš všechny zaregistrované klimatizace. Můžeš libovolně upravovat data, poznámky, intervaly údržby nebo mazat (zadej heslo '1234').")
+        st.write("Zde vidíš všechny zaregistrované klimatizace. Můžeš libovolně upravovat data, poznámky, intervaly údržby nebo mazat (zadej heslo 'napiš Kryštofovi').")
         
         if not st.session_state.klimatizace:
             st.info("Zatím nejsou v databázi žádné klimatizace.")
