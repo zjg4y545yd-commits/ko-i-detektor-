@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import date, datetime, timedelta
 import yfinance as yf
 import calendar
+import plotly.graph_objects as go  # NOVÁ KNIHOVNA PRO GRAFY
 
 # 1. Nastavení stránky (musí být vždy na začátku)
 st.set_page_config(layout="wide")
@@ -97,6 +98,7 @@ with right_col:
     if st.button("PENÍZKY", use_container_width=True, key="btn_penizky"): st.session_state.pravy_vyber = "penizky"
     if st.button("AKCIE 2.0 🚀", use_container_width=True, key="btn_akcie2"): st.session_state.pravy_vyber = "akcie2"
     if st.button("PRO PRÁVNÍKY", use_container_width=True, key="btn_pravnici"): st.session_state.pravy_vyber = "pravnici"
+    if st.button("BTC ANALÝZA 📈", use_container_width=True, key="btn_btc_analyza"): st.session_state.pravy_vyber = "btc_analyza"
     
     st.markdown("---")
     st.subheader(f"Tvoje body: {st.session_state.body}")
@@ -378,7 +380,7 @@ with left_col:
             "AMZN": {
                 "nazev": "Amazon",
                 "kvartal": "Maloobchod se vrátil k ziskovosti díky optimalizaci doručování. Cloud AWS konečně po pauze opět akceleruje svůj růst.",
-                "analytici": "STRONG BUY. Vidí obrovský potenciál ve zvyšování marží a v integraci AI do jejich cloudového byznysu.",
+                "analytici": "STRONG BUY. Vidí obrovský potenciál ve zvyšování marží a v integraci AI do valního cloudového byznysu.",
                 "plany": "Automatizace skladů pomocí robotů, expanze zdravotnických služeb (Amazon Pharmacy) a vývoj vlastních AI čipů pro cloud AWS.",
                 "rizika": "Ochlazení spotřebitelské poptávky kvůli inflaci, hrozba odborů mezi zaměstnanci skladů a útoky levné čínské konkurence (Temu, Shein).",
                 "plusy": ["Dominance v cloudu (AWS) i e-commerce", "Nesmírně silný program Amazon Prime", "Zlepšující se ziskovost"],
@@ -795,6 +797,68 @@ with left_col:
                 html += "</tr>"
             html += "</table>"
             st.markdown(html, unsafe_allow_html=True)
+            
+    # --- NOVÁ SEKCE: BTC ANALÝZA ---
+    elif st.session_state.pravy_vyber == "btc_analyza":
+        st.header("📈 BTC Investiční kalkulátor a Analýza")
+        st.write("Sleduj svůj profit a technickou analýzu (Zlatý kříž / SMA) na jednom místě.")
+        
+        # Vstupy pro výpočet
+        col_in1, col_in2 = st.columns(2)
+        vklad = col_in1.number_input("Tvoje vložená částka (CZK):", value=22000, step=1000)
+        nakupni_cena_usd = col_in2.number_input("Tvoje průměrná nákupní cena (USD):", value=60000, step=1000)
+        kurz_usd_czk = 23 # Orientační kurz
+        
+        with st.spinner("Stahuji aktuální data z burzy..."):
+            try:
+                ticker = yf.Ticker("BTC-USD")
+                df = ticker.history(period="1y", interval="1d")
+                
+                if not df.empty:
+                    aktualni_btc_cena = df['Close'].iloc[-1]
+                    
+                    # Výpočty
+                    pocet_btc = vklad / (nakupni_cena_usd * kurz_usd_czk)
+                    aktualni_hodnota = pocet_btc * (aktualni_btc_cena * kurz_usd_czk)
+                    profit = aktualni_hodnota - vklad
+                    
+                    st.markdown("### 💰 Tvoje výsledky")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Aktuální cena BTC", f"${aktualni_btc_cena:,.2f}")
+                    c2.metric("Tvá aktuální hodnota", f"{aktualni_hodnota:,.0f} CZK", delta=f"{profit:,.0f} CZK")
+                    c3.metric("Tvůj podíl BTC", f"{pocet_btc:.4f} ₿")
+                    
+                    if profit >= 0:
+                        st.success("Jsi v plusu! 🚀")
+                    else:
+                        st.warning("Jsi v mínusu, drž se! 💎")
+                        
+                    st.markdown("---")
+                    st.markdown("### 📊 Technická analýza (Graf s 50denním průměrem)")
+                    
+                    # Příprava grafu
+                    fig = go.Figure(data=[go.Candlestick(x=df.index,
+                                    open=df['Open'], high=df['High'],
+                                    low=df['Low'], close=df['Close'],
+                                    name='BTC')])
+                    
+                    # Přidání klouzavého průměru (SMA 50)
+                    df['SMA50'] = df['Close'].rolling(window=50).mean()
+                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA50'], line=dict(color='orange', width=2), name='SMA 50 (Krátkodobý trend)'))
+                    
+                    # Přidání SMA 200
+                    df['SMA200'] = df['Close'].rolling(window=200).mean()
+                    fig.add_trace(go.Scatter(x=df.index, y=df['SMA200'], line=dict(color='blue', width=2), name='SMA 200 (Dlouhodobý trend)'))
+                    
+                    fig.update_layout(height=600, template="plotly_dark", margin=dict(l=0, r=0, t=30, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    st.info("💡 **Nápověda k průměrům:** Když oranžová čára (SMA 50) překříží modrou čáru (SMA 200) směrem nahoru, jedná se o tzv. 'Zlatý kříž' (silný růstový signál). Když směrem dolů, jde o 'Kříž smrti'.")
+                    
+                else:
+                    st.error("Nepodařilo se stáhnout data o ceně.")
+            except Exception as e:
+                st.error(f"Něco se pokazilo při načítání dat: {e}")
 
     else:
         if st.session_state.get("pexeso_hotovo", False):
