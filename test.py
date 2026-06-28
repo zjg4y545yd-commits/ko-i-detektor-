@@ -48,7 +48,7 @@ h1, h2, h3 {
 
 /* Úprava běžných textů, popisků a markdownu na čistě bílou/světle šedou */
 p, label, .stMarkdown, [data-testid="stMarkdownContainer"] {
-    color: #ffffff !important;
+    color: #e00b0b !important;
     font-size: 1.1rem;
 }
 
