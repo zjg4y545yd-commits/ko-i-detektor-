@@ -73,7 +73,7 @@ with col_login:
             jmeno_prihlaseni = st.text_input("Jméno", key="in_jmeno")
             heslo_prihlaseni = st.text_input("Heslo", type="password", key="in_heslo")
             if st.button("Přihlásit"):
-                if jmeno_prihlaseni == "kpala" and heslo_prihlaseni == "123":
+                if jmeno_prihlaseni == "1" and heslo_prihlaseni == "1":
                     st.session_state.prihlasen = True
                     st.rerun()
                 else:
