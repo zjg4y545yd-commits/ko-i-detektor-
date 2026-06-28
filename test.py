@@ -26,7 +26,7 @@ st.markdown("""
 
 /* Zlatavá barva pro nadpisy evokující žhavý kov */
 h1, h2, h3 {
-    color: #d4af37 !important;
+    color: #5c0b0b !important;
     font-family: 'Georgia', serif;
 }
 
