@@ -1,28 +1,47 @@
 import streamlit as st
 import json
 import os
-from datetime import date
+from datetime import date, datetime
+import uuid
 
 # Nastavení stránky
 st.set_page_config(page_title="Umělecké kovářství", layout="wide")
 
-# --- FUNKCE ---
+# --- FUNKCE PRO DATA ---
 SOUBOR_TERMINY = "terminy.json"
+SOUBOR_NAVSTEVNOST = "navstevnost.json"
 
-def nacti_terminy():
-    if os.path.exists(SOUBOR_TERMINY):
-        with open(SOUBOR_TERMINY, "r", encoding="utf-8") as f:
+def nacti_json(soubor, default_hodnota):
+    if os.path.exists(soubor):
+        with open(soubor, "r", encoding="utf-8") as f:
             return json.load(f)
-    return []
+    return default_hodnota
 
-def uloz_terminy(data):
-    with open(SOUBOR_TERMINY, "w", encoding="utf-8") as f:
+def uloz_json(soubor, data):
+    with open(soubor, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+# Inicializace session state
 if "terminy" not in st.session_state:
-    st.session_state.terminy = nacti_terminy()
+    st.session_state.terminy = nacti_json(SOUBOR_TERMINY, [])
 if "prihlasen" not in st.session_state:
     st.session_state.prihlasen = False
+
+# --- SYSTÉM SLEDOVÁNÍ NÁVŠTĚVNOSTI ---
+if "navsteva_zaznamenana" not in st.session_state:
+    st.session_state.navsteva_zaznamenana = True
+    # Vytvoření unikátního ID pro tohoto návštěvníka (prvních 8 znaků)
+    st.session_state.visitor_id = str(uuid.uuid4())[:8] 
+    
+    data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
+    dnes = str(date.today())
+    cas = datetime.now().strftime("%H:%M:%S")
+    
+    if dnes not in data_navstev:
+        data_navstev[dnes] = []
+        
+    data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
+    uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
 # --- CSS STYLING ---
 st.markdown("""
@@ -66,7 +85,7 @@ st.markdown("---")
 # --- NAVIGACE ---
 seznam_zalozek = ["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny"]
 if st.session_state.prihlasen:
-    seznam_zalozek.append("Administrace")
+    seznam_zalozek.extend(["Administrace", "Návštěvnost"])
 
 tabs = st.tabs(seznam_zalozek)
 
@@ -93,7 +112,6 @@ with tabs[0]:
 with tabs[1]:
     st.header("Ukázky naší práce")
     
-    # NOVINKA: Nahrávání fotek přímo ve fotogalerii (pouze pro přihlášeného správce)
     if st.session_state.prihlasen:
         st.subheader("📸 Správa fotografií (Administrátor)")
         if not os.path.exists("fotogalerie"): 
@@ -108,7 +126,6 @@ with tabs[1]:
                 st.rerun()
         st.markdown("---")
 
-    # Zobrazení samotné galerie
     if os.path.exists("fotogalerie"):
         fotky = [f for f in os.listdir("fotogalerie") if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         if not fotky: 
@@ -118,8 +135,6 @@ with tabs[1]:
             for i, fotka in enumerate(fotky):
                 with cols[i % 2]:
                     st.image(os.path.join("fotogalerie", fotka), caption=fotka, use_container_width=True)
-                    
-                    # NOVINKA: Tlačítko pro smazání fotky (pouze pro přihlášeného správce)
                     if st.session_state.prihlasen:
                         if st.button(f"🗑️ Smazat fotku", key=f"smazat_{i}_{fotka}"):
                             try:
@@ -161,14 +176,12 @@ with tabs[2]:
 # ZÁLOŽKA 4: TERMÍNY
 with tabs[3]:
     st.header("Sjednejte si s námi termín")
-    st.write("Vyberte si datum v kalendáři a zanechte nám na sebe kontakt.")
-    
     vybrane_datum = st.date_input("Zvolte preferované datum:", min_value=date.today())
     jmeno = st.text_input("Vaše jméno a příjmení:")
     kontakt_volba = st.radio("Jak si přejete být kontaktováni?", ["Telefonicky", "E-mailem"])
     
     if kontakt_volba == "Telefonicky":
-        kontakt_udaj = st.text_input("Váš telephone kód a číslo:")
+        kontakt_udaj = st.text_input("Váš telefon a předvolba:")
     else:
         kontakt_udaj = st.text_input("Vaše e-mailová adresa:")
         
@@ -178,24 +191,17 @@ with tabs[3]:
         if not jmeno or not kontakt_udaj:
             st.error("Pro odeslání prosím vyplňte své jméno a kontaktní údaj.")
         else:
-            novy_pozadavek = {
-                "datum": str(vybrane_datum),
-                "jmeno": jmeno,
-                "typ_kontaktu": kontakt_volba,
-                "kontakt": kontakt_udaj,
-                "poznamka": poznamka,
-                "vyreseno": False
-            }
-            st.session_state.terminy.append(novy_pozadavek)
-            uloz_terminy(st.session_state.terminy)
-            st.success("Děkujeme! Váš požadavek byl úspěšně odeslán. Brzy se vám ozveme.")
+            st.session_state.terminy.append({
+                "datum": str(vybrane_datum), "jmeno": jmeno, "typ_kontaktu": kontakt_volba,
+                "kontakt": kontakt_udaj, "poznamka": poznamka, "vyreseno": False
+            })
+            uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
+            st.success("Děkujeme! Váš požadavek byl odeslán.")
 
 # ZÁLOŽKA 5: ADMINISTRACE
 if st.session_state.prihlasen:
     with tabs[4]:
         st.header("Administrace webu")
-        
-        # Zde už zůstala pouze správa termínů od lidí
         st.subheader("📅 Požadavky od zákazníků")
         nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
         
@@ -207,9 +213,41 @@ if st.session_state.prihlasen:
                     st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', 'Nezadáno')})")
                     st.write(f"**Poznámka:** {term.get('poznamka', '')}")
                     if st.button("Označit jako vyřízené", key=f"btn_{i}"):
-                        for index_v_hlavni, t in enumerate(st.session_state.terminy):
+                        for idx, t in enumerate(st.session_state.terminy):
                             if t == term:
-                                st.session_state.terminy[index_v_hlavni]["vyreseno"] = True
+                                st.session_state.terminy[idx]["vyreseno"] = True
                                 break
-                        uloz_terminy(st.session_state.terminy)
+                        uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
                         st.rerun()
+
+# ZÁLOŽKA 6: NÁVŠTĚVNOST
+if st.session_state.prihlasen:
+    with tabs[5]:
+        st.header("📊 Statistiky návštěvnosti")
+        
+        data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
+        
+        if not data_navstev:
+            st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
+        else:
+            # Příprava dat pro graf
+            graf_data = {den: len(navstevnici) for den, navstevnici in data_navstev.items()}
+            
+            st.subheader("Návštěvy po dnech")
+            st.bar_chart(graf_data)
+            
+            st.markdown("---")
+            
+            # Zobrazení detailů pro dnešek
+            dnesni_datum = str(date.today())
+            st.subheader(f"Dnešní provoz ({dnesni_datum})")
+            
+            if dnesni_datum in data_navstev:
+                dnesni_navstevy = data_navstev[dnesni_datum]
+                st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
+                
+                # Vypsání historie od nejnovějšího
+                for zaznam in reversed(dnesni_navstevy):
+                    st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
+            else:
+                st.write("Dnes zatím žádné návštěvy.")
