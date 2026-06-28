@@ -46,8 +46,7 @@ with col_nadpis:
     st.title("Umělecké kovářství")
 with col_login:
     if not st.session_state.prihlasen:
-        with st.expander("👤 Přihlášení"):
-            # Opravená logika formuláře - pole musí být definovaná před tlačítkem
+        with st.expander("👤 Přihlášení pro správce"):
             jmeno_prihlaseni = st.text_input("Jméno", key="in_jmeno")
             heslo_prihlaseni = st.text_input("Heslo", type="password", key="in_heslo")
             if st.button("Přihlásit"):
@@ -93,6 +92,23 @@ with tabs[0]:
 # ZÁLOŽKA 2: FOTOGALERIE
 with tabs[1]:
     st.header("Ukázky naší práce")
+    
+    # NOVINKA: Nahrávání fotek přímo ve fotogalerii (pouze pro přihlášeného správce)
+    if st.session_state.prihlasen:
+        st.subheader("📸 Správa fotografií (Administrátor)")
+        if not os.path.exists("fotogalerie"): 
+            os.makedirs("fotogalerie")
+            
+        uploaded_file = st.file_uploader("Vyberte obrázek (JPG, PNG) pro přidání do galerie", type=["jpg", "jpeg", "png"])
+        if uploaded_file is not None:
+            if st.button("Uložit fotku do galerie"):
+                with open(os.path.join("fotogalerie", uploaded_file.name), "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                st.success(f"Fotka {uploaded_file.name} byla úspěšně uložena!")
+                st.rerun()
+        st.markdown("---")
+
+    # Zobrazení samotné galerie
     if os.path.exists("fotogalerie"):
         fotky = [f for f in os.listdir("fotogalerie") if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         if not fotky: 
@@ -102,6 +118,15 @@ with tabs[1]:
             for i, fotka in enumerate(fotky):
                 with cols[i % 2]:
                     st.image(os.path.join("fotogalerie", fotka), caption=fotka, use_container_width=True)
+                    
+                    # NOVINKA: Tlačítko pro smazání fotky (pouze pro přihlášeného správce)
+                    if st.session_state.prihlasen:
+                        if st.button(f"🗑️ Smazat fotku", key=f"smazat_{i}_{fotka}"):
+                            try:
+                                os.remove(os.path.join("fotogalerie", fotka))
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Nepodařilo se smazat soubor: {e}")
     else: 
         st.write("Složka pro fotky zatím nebyla vytvořena.")
 
@@ -143,7 +168,7 @@ with tabs[3]:
     kontakt_volba = st.radio("Jak si přejete být kontaktováni?", ["Telefonicky", "E-mailem"])
     
     if kontakt_volba == "Telefonicky":
-        kontakt_udaj = st.text_input("Váš telefonní kód a číslo:")
+        kontakt_udaj = st.text_input("Váš telephone kód a číslo:")
     else:
         kontakt_udaj = st.text_input("Vaše e-mailová adresa:")
         
@@ -170,22 +195,7 @@ if st.session_state.prihlasen:
     with tabs[4]:
         st.header("Administrace webu")
         
-        # Nahrávání fotek
-        st.subheader("📸 Nahrát novou fotku do galerie")
-        if not os.path.exists("fotogalerie"): 
-            os.makedirs("fotogalerie")
-            
-        uploaded_file = st.file_uploader("Vyberte obrázek (JPG, PNG)", type=["jpg", "jpeg", "png"])
-        if uploaded_file is not None:
-            if st.button("Uložit fotku do galerie"):
-                with open(os.path.join("fotogalerie", uploaded_file.name), "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"Fotka {uploaded_file.name} byla úspěšně uložena!")
-                st.rerun()
-            
-        st.markdown("---")
-            
-        # Požadavky
+        # Zde už zůstala pouze správa termínů od lidí
         st.subheader("📅 Požadavky od zákazníků")
         nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
         
