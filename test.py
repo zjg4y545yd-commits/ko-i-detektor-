@@ -40,6 +40,10 @@ if "navsteva_zaznamenana" not in st.session_state:
     if dnes not in data_navstev:
         data_navstev[dnes] = []
         
+    # Pojistka pro případ, že v souboru byla stará data (např. pouze číslo místo seznamu)
+    if not isinstance(data_navstev[dnes], list):
+        data_navstev[dnes] = []
+        
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
@@ -95,7 +99,7 @@ with tabs[0]:
     st.write("""
     Vítejte na stránkách našeho uměleckého kovářství. Specializujeme se na ruční výrobu a umělecké zpracování kovů s hlavním zaměřením na zakázkovou výrobu kovaných plotů a vjezdových bran.
     
-    Každý kus, který opustí naši dílnu, je výsledkem poctivé řemeslné práce, kde se tradiční kovářské postupy setkávají s přesností a důrazem na detail. Ať už hledáte robustní ochranu vašeho pozemku nebo elegantní vstupní prvek, navrhneme a vyrobíme řešení přesně na míru vašim představám a architektonickému stylu vašeho domu.
+    Každý kus, který opustí naši dílnu, je výsledkem poctivé řemeslné práce, kde se tradiční kovářské postupy setkávají s přesností a důrazem na detail. Ať už hledáte robustní ochranu vašeho pozemku nebo elegantní vstupní prvek, navrhneme a vyrobíme řešení přesně na míru vašim představám a architekce vašeho domu.
     
     Naše práce se vyznačuje vysokou odolností, kvalitní povrchovou úpravou a nadčasovým designem, který vydrží generace.
     """)
@@ -230,24 +234,38 @@ if st.session_state.prihlasen:
         if not data_navstev:
             st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
         else:
-            # Příprava dat pro graf
-            graf_data = {den: len(navstevnici) for den, navstevnici in data_navstev.items()}
+            # BEZPEČNÝ VÝPOČET: Ošetření struktury dat pro graf bez ohledu na starý formát
+            graf_data = {}
+            for den, data_dne in data_navstev.items():
+                if isinstance(data_dne, list):
+                    graf_data[den] = len(data_dne)
+                elif isinstance(data_dne, int):
+                    graf_data[den] = data_dne
+                else:
+                    graf_data[den] = 1
             
             st.subheader("Návštěvy po dnech")
             st.bar_chart(graf_data)
             
             st.markdown("---")
             
-            # Zobrazení detailů pro dnešek
+            # Zobrazení detailů pro dnešní den
             dnesni_datum = str(date.today())
             st.subheader(f"Dnešní provoz ({dnesni_datum})")
             
             if dnesni_datum in data_navstev:
                 dnesni_navstevy = data_navstev[dnesni_datum]
-                st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
                 
-                # Vypsání historie od nejnovějšího
-                for zaznam in reversed(dnesni_navstevy):
-                    st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
+                if isinstance(dnesni_navstevy, list):
+                    st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
+                    
+                    # Výpis časů a ID od nejnovějších
+                    for zaznam in reversed(dnesni_navstevy):
+                        if isinstance(zaznam, dict) and 'cas' in zaznam and 'id' in zaznam:
+                            st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
+                else:
+                    # Zpětná kompatibilita pro staré uložené záznamy
+                    st.write(f"**Celkem návštěv dnes:** {dnesni_navstevy}")
+                    st.write("*Detailní časy nejsou pro tyto starší testovací záznamy k dispozici.*")
             else:
                 st.write("Dnes zatím žádné návštěvy.")
