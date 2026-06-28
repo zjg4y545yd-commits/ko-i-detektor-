@@ -239,4 +239,12 @@ if st.session_state.prihlasen:
                 with st.expander(f"📅 Požadavek na datum: {term['datum']} - Zákazník: {term['jmeno']}"):
                     st.write(f"**Preferovaný kontakt:** {term['typ_kontaktu']}")
                     st.write(f"**Kontakt:** {term['kontakt']}")
-                    st.write(f"**Poznámka od zákazníka:** {term['poznam
+                    st.write(f"**Poznámka od zákazníka:** {term['poznamka']}")
+                    
+                    if st.button("Označit jako vyřízené", key=f"btn_vyridit_{i}"):
+                        for index_v_hlavni, t in enumerate(st.session_state.terminy):
+                            if t == term:
+                                st.session_state.terminy[index_v_hlavni]["vyreseno"] = True
+                                break
+                        uloz_terminy(st.session_state.terminy)
+                        st.rerun()
