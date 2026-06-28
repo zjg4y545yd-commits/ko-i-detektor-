@@ -22,7 +22,11 @@ def uloz_terminy(data):
 if "terminy" not in st.session_state:
     st.session_state.terminy = nacti_terminy()
 
-# Vložení vlastního CSS pro kovářský vzhled (šedé pozadí a temný design)
+# Nastavení stavu přihlášení
+if "prihlasen" not in st.session_state:
+    st.session_state.prihlasen = False
+
+# Vložení vlastního CSS pro kovářský vzhled a opravu expanderů
 st.markdown("""
 <style>
 /* Nastavení celkového šedého pozadí webu (břidlicová / ocelová šedá) */
@@ -37,7 +41,7 @@ st.markdown("""
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.6);
     color: #f5f5f5 !important;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 /* Barva pro nadpisy - evokuje rozžhavený kov a zajišťuje skvělou čitelnost */
@@ -48,7 +52,7 @@ h1, h2, h3 {
 
 /* Úprava běžných textů, popisků a markdownu na čistě bílou/světle šedou */
 p, label, .stMarkdown, [data-testid="stMarkdownContainer"] {
-    color: #ffff !important;
+    color: #ffffff !important;
     font-size: 1.1rem;
 }
 
@@ -72,18 +76,65 @@ p, label, .stMarkdown, [data-testid="stMarkdownContainer"] {
     color: #ff6600 !important;
     border-bottom-color: #ff6600 !important;
 }
+
+/* OPRAVA EXPANDERŮ (Požadavky v administraci) - Vynucení tmavého pozadí */
+[data-testid="stExpander"] details, [data-testid="stExpander"] {
+    background-color: #26282b !important;
+    border: 1px solid #444 !important;
+    border-radius: 8px;
+}
+[data-testid="stExpander"] summary {
+    background-color: #33363a !important;
+    color: #ff6600 !important;
+}
+[data-testid="stExpander"] summary:hover {
+    background-color: #42464c !important;
+    color: #ff6600 !important;
+}
+[data-testid="stExpanderDetails"] {
+    background-color: #1a1b1c !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Hlavní hlavička
-st.title("Umělecké kovářství")
+# --- HLAVIČKA A PŘIHLAŠOVÁNÍ ---
+# Rozdělení horní části na nadpis (vlevo) a přihlášení (vpravo)
+col_nadpis, col_login = st.columns([3, 1])
+
+with col_nadpis:
+    st.title("Umělecké kovářství")
+
+with col_login:
+    # Pokud není uživatel přihlášený, zobrazíme mu formulář
+    if not st.session_state.prihlasen:
+        with st.expander("👤 Přihlášení pro správce"):
+            jmeno_prihlaseni = st.text_input("Jméno", key="in_jmeno")
+            heslo_prihlaseni = st.text_input("Heslo", type="password", key="in_heslo")
+            if st.button("Přihlásit"):
+                if jmeno_prihlaseni == "kpala" and heslo_prihlaseni == "123":
+                    st.session_state.prihlasen = True
+                    st.rerun()  # Okamžitě obnoví stránku a ukáže skrytou záložku
+                else:
+                    st.error("Špatné jméno nebo heslo!")
+    # Pokud přihlášený je, ukážeme ikonku a tlačítko pro odhlášení
+    else:
+        st.markdown("### 👤 Vítej, kpala")
+        if st.button("Odhlásit se"):
+            st.session_state.prihlasen = False
+            st.rerun()
+
 st.markdown("---")
 
-# Vytvoření záložek pro navigaci
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny", "Termíny editace"])
+# --- VYTVOŘENÍ ZÁLOŽEK ---
+# Logika: Administrace se přidá do seznamu jen pokud je uživatel přihlášen
+seznam_zalozek = ["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny"]
+if st.session_state.prihlasen:
+    seznam_zalozek.append("Administrace")
+
+tabs = st.tabs(seznam_zalozek)
 
 # ZÁLOŽKA 1: INFORMACE
-with tab1:
+with tabs[0]:
     st.header("O naší dílně")
     st.write("""
     Vítejte na stránkách našeho uměleckého kovářství. Specializujeme se na ruční výrobu a umělecké zpracování kovů s hlavním zaměřením na zakázkovou výrobu kovaných plotů a vjezdových bran.
@@ -102,26 +153,24 @@ with tab1:
     """)
 
 # ZÁLOŽKA 2: FOTOGALERIE
-with tab2:
+with tabs[1]:
     st.header("Ukázky naší práce")
     st.write("Prohlédněte si naše nedávné realizace.")
     
-    # Rozvržení do sloupců pro lepší prezentaci
     col1, col2 = st.columns(2)
-    
     with col1:
         st.image("https://images.unsplash.com/photo-1622359487565-d60321262d08?q=80&w=800&auto=format&fit=crop", caption="Detail kované brány")
     with col2:
         st.image("https://images.unsplash.com/photo-1533038590840-1cbea9766434?q=80&w=800&auto=format&fit=crop", caption="Kovářská práce v dílně")
         
-    st.info("Administrátorská poznámka: Pro nahrávání nových fotografií přímo z aplikace lze do budoucna přidat modul. Nyní se fotografie nahrávají umístěním do složky programu.")
+    st.info("Administrátorská poznámka: Pro nahrávání nových fotografií přímo z aplikace lze do budoucna přidat modul.")
 
 # ZÁLOŽKA 3: KALKULAČKA A CENÍK
-with tab3:
+with tabs[2]:
     st.header("Orientační kalkulačka zakázky")
-    st.write("Vyberte typ výrobku a zadejte požadovanou délku pro získání orientační ceny. Výpočet zohledňuje aktuální tržní cenu železa a náročnost ruční práce.")
+    st.write("Vyberte typ výrobku a zadejte požadovanou délku pro získání orientační ceny.")
     
-    aktualni_cena_zeleza_za_kg = 28.50  # Hodnota v CZK
+    aktualni_cena_zeleza_za_kg = 28.50 
     
     koeficienty = {
         "Kovaná brána": {"kg_na_metr": 55, "prace_na_metr": 6500},
@@ -143,20 +192,18 @@ with tab3:
         st.write(f"Zadaný rozměr: **{delka_v_metrech} m**")
         st.write(f"Typ konstrukce: **{vybrany_produkt}**")
         st.metric(label="Odhadovaná celková cena", value=f"{celkova_cena:,.0f} CZK".replace(",", " "))
-        st.caption("Uvedená cena je pouze orientační. Přesná kalkulace bude stanovena po osobním zaměření.")
 
 # ZÁLOŽKA 4: TERMÍNY (Pro zákazníky)
-with tab4:
+with tabs[3]:
     st.header("Sjednejte si s námi termín")
-    st.write("Vyberte si datum v kalendáři a zanechte nám na sebe kontakt. Ozveme se vám zpět pro potvrzení a domluvení detailů.")
+    st.write("Vyberte si datum v kalendáři a zanechte nám na sebe kontakt.")
     
     vybrane_datum = st.date_input("Zvolte preferované datum:", min_value=date.today())
     jmeno = st.text_input("Vaše jméno a příjmení:")
-    
     kontakt_volba = st.radio("Jak si přejete být kontaktováni?", ["Telefonicky", "E-mailem"])
     
     if kontakt_volba == "Telefonicky":
-        kontakt_udaj = st.text_input("Váš telephone kód a číslo:")
+        kontakt_udaj = st.text_input("Váš telefonní kód a číslo:")
     else:
         kontakt_udaj = st.text_input("Vaše e-mailová adresa:")
         
@@ -178,37 +225,18 @@ with tab4:
             uloz_terminy(st.session_state.terminy)
             st.success("Děkujeme! Váš požadavek byl úspěšně odeslán. Brzy se vám ozveme.")
 
-# ZÁLOŽKA 5: TERMÍNY EDITACE (Pro majitele/správce)
-with tab5:
-    st.header("Administrace požadavků")
-    st.write("Zde vidíte všechny nové poptávky od zákazníků. Pro zobrazení zadejte administrátorské heslo.")
-    
-    heslo = st.text_input("Zadejte heslo:", type="password")
-    
-    # Heslo je nastaveno na 1234
-    if heslo == "1234":
-        st.success("Přístup povolen.")
+# ZÁLOŽKA 5: ADMINISTRACE (Jen pro přihlášené)
+if st.session_state.prihlasen:
+    with tabs[4]:
+        st.header("Administrace požadavků")
         
-        # Filtrujeme jen ty termíny, které ještě nejsou vyřešené
         nevyresene_terminy = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
         
         if not nevyresene_terminy:
             st.info("Aktuálně nemáte žádné nové požadavky od zákazníků.")
         else:
             for i, term in enumerate(nevyresene_terminy):
-                with st.expander(f"Požadavek na datum: {term['datum']} - Zákazník: {term['jmeno']}"):
+                with st.expander(f"📅 Požadavek na datum: {term['datum']} - Zákazník: {term['jmeno']}"):
                     st.write(f"**Preferovaný kontakt:** {term['typ_kontaktu']}")
                     st.write(f"**Kontakt:** {term['kontakt']}")
-                    st.write(f"**Poznámka od zákazníka:** {term['poznamka']}")
-                    
-                    # Tlačítko pro vyřízení a skrytí požadavku
-                    if st.button("Označit jako vyřízené", key=f"btn_vyridit_{i}"):
-                        # Najdeme tento konkrétní záznam v hlavní databázi a změníme ho
-                        for index_v_hlavni, t in enumerate(st.session_state.terminy):
-                            if t == term:
-                                st.session_state.terminy[index_v_hlavni]["vyreseno"] = True
-                                break
-                        uloz_terminy(st.session_state.terminy)
-                        st.rerun()
-    elif heslo != "":
-        st.error("Nesprávné heslo.")
+                    st.write(f"**Poznámka od zákazníka:** {term['poznam
