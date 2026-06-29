@@ -3,11 +3,12 @@ import json
 import os
 from datetime import date, datetime
 import uuid
+import base64
 
 # Nastavení stránky
 st.set_page_config(page_title="Umělecké kovářství", layout="wide")
 
-# --- FUNKCE PRO DATA ---
+# --- FUNKCE PRO DATA A OBRÁZKY ---
 SOUBOR_TERMINY = "terminy.json"
 SOUBOR_NAVSTEVNOST = "navstevnost.json"
 
@@ -21,6 +22,13 @@ def uloz_json(soubor, data):
     with open(soubor, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+def nacti_obrazek_base64(cesta_k_souboru):
+    """Načte obrázek a převede ho do formátu pro CSS pozadí."""
+    if os.path.exists(cesta_k_souboru):
+        with open(cesta_k_souboru, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
 # Inicializace session state
 if "terminy" not in st.session_state:
     st.session_state.terminy = nacti_json(SOUBOR_TERMINY, [])
@@ -30,7 +38,6 @@ if "prihlasen" not in st.session_state:
 # --- SYSTÉM SLEDOVÁNÍ NÁVŠTĚVNOSTI ---
 if "navsteva_zaznamenana" not in st.session_state:
     st.session_state.navsteva_zaznamenana = True
-    # Vytvoření unikátního ID pro tohoto návštěvníka (prvních 8 znaků)
     st.session_state.visitor_id = str(uuid.uuid4())[:8] 
     
     data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
@@ -40,28 +47,60 @@ if "navsteva_zaznamenana" not in st.session_state:
     if dnes not in data_navstev:
         data_navstev[dnes] = []
         
-    # Pojistka pro případ, že v souboru byla stará data (např. pouze číslo místo seznamu)
     if not isinstance(data_navstev[dnes], list):
         data_navstev[dnes] = []
         
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING ---
-st.markdown("""
+# --- NAVIGACE ---
+seznam_stranek = ["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny"]
+if st.session_state.prihlasen:
+    seznam_stranek.extend(["Administrace", "Návštěvnost"])
+
+# Nahrazení tabs za dynamické menu
+aktualni_stranka = st.radio("Navigace", seznam_stranek, horizontal=True, label_visibility="collapsed")
+
+# --- CSS STYLING A DYNAMICKÉ POZADÍ ---
+obrazek_pozadi_base64 = nacti_obrazek_base64("pozadi.png")
+
+# Pokud jsme v Galerii nebo Administraci, dáme plné barvy bez obrázku
+if aktualni_stranka in ["Fotogalerie", "Administrace"] or not obrazek_pozadi_base64:
+    css_pozadi = """
+    .stApp { background-color: #2e3033 !important; }
+    .main .block-container { background-color: #1a1b1c !important; }
+    """
+else:
+    # Pro ostatní stránky nastavíme obrázek a poloprůhledný kontejner pro čitelnost textu
+    css_pozadi = f"""
+    .stApp {{
+        background-image: url("data:image/png;base64,{obrazek_pozadi_base64}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    .main .block-container {{
+        background-color: rgba(26, 27, 28, 0.85) !important; /* Poloprůhledná černá pro čitelnost */
+        backdrop-filter: blur(5px); /* Lehké rozmazání pozadí za textem */
+    }}
+    """
+
+# Přidání zbytku tvých stylů (nadpisy, tlačítka atd.)
+st.markdown(f"""
 <style>
-.stApp { background-color: #2e3033 !important; }
-.main .block-container { background-color: #1a1b1c !important; padding: 3rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); color: #f5f5f5 !important; margin-top: 1rem; }
-h1, h2, h3 { color: #ff6600 !important; font-family: 'Georgia', serif; }
-p, label, .stMarkdown, [data-testid="stMarkdownContainer"] { color: #ffffff !important; font-size: 1.1rem; }
-.stButton>button { background-color: #3a1c00 !important; color: #d4af37 !important; border: 1px solid #d4af37 !important; transition: 0.3s; }
-.stButton>button:hover { background-color: #d4af37 !important; color: #111111 !important; }
-.stTabs [data-baseweb="tab"] { color: #b0b5bc !important; }
-.stTabs [data-baseweb="tab"][aria-selected="true"] { color: #ff6600 !important; border-bottom-color: #ff6600 !important; }
-[data-testid="stExpander"] details, [data-testid="stExpander"] { background-color: #26282b !important; border: 1px solid #444 !important; border-radius: 8px; }
-[data-testid="stExpander"] summary { background-color: #33363a !important; color: #ff6600 !important; }
+{css_pozadi}
+.main .block-container {{ padding: 3rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); color: #f5f5f5 !important; margin-top: 1rem; }}
+h1, h2, h3 {{ color: #ff6600 !important; font-family: 'Georgia', serif; }}
+p, label, .stMarkdown, [data-testid="stMarkdownContainer"] {{ color: #ffffff !important; font-size: 1.1rem; }}
+.stButton>button {{ background-color: #3a1c00 !important; color: #d4af37 !important; border: 1px solid #d4af37 !important; transition: 0.3s; }}
+.stButton>button:hover {{ background-color: #d4af37 !important; color: #111111 !important; }}
+/* Stylizace radio buttonů, aby vypadaly jako navigační lišta */
+div[role="radiogroup"] {{ flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 10px; background-color: rgba(0,0,0,0.5); border-radius: 8px; }}
+[data-testid="stExpander"] details, [data-testid="stExpander"] {{ background-color: #26282b !important; border: 1px solid #444 !important; border-radius: 8px; }}
+[data-testid="stExpander"] summary {{ background-color: #33363a !important; color: #ff6600 !important; }}
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- HLAVIČKA A PŘIHLAŠOVÁNÍ ---
 col_nadpis, col_login = st.columns([3, 1])
@@ -86,15 +125,10 @@ with col_login:
 
 st.markdown("---")
 
-# --- NAVIGACE ---
-seznam_zalozek = ["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny"]
-if st.session_state.prihlasen:
-    seznam_zalozek.extend(["Administrace", "Návštěvnost"])
 
-tabs = st.tabs(seznam_zalozek)
+# --- ZOBRAZENÍ OBSAHU PODLE VYBRANÉ STRÁNKY ---
 
-# ZÁLOŽKA 1: INFORMACE
-with tabs[0]:
+if aktualni_stranka == "Informace":
     st.header("O naší dílně")
     st.write("""
     Vítejte na stránkách našeho uměleckého kovářství. Specializujeme se na ruční výrobu a umělecké zpracování kovů s hlavním zaměřením na zakázkovou výrobu kovaných plotů a vjezdových bran.
@@ -112,8 +146,8 @@ with tabs[0]:
     * Restaurování historických kovářských děl
     """)
 
-# ZÁLOŽKA 2: FOTOGALERIE
-with tabs[1]:
+
+elif aktualni_stranka == "Fotogalerie":
     st.header("Ukázky naší práce")
     
     if st.session_state.prihlasen:
@@ -149,8 +183,8 @@ with tabs[1]:
     else: 
         st.write("Složka pro fotky zatím nebyla vytvořena.")
 
-# ZÁLOŽKA 3: KALKULAČKA
-with tabs[2]:
+
+elif aktualni_stranka == "Ceník a Kalkulačka":
     st.header("Orientační kalkulačka zakázky")
     st.write("Vyberte typ výrobku a zadejte požadovanou délku pro získání orientační ceny. Výpočet zohledňuje aktuální tržní cenu železa a náročnost ruční práce.")
     
@@ -177,8 +211,8 @@ with tabs[2]:
         st.write(f"Typ konstrukce: **{vybrany_produkt}**")
         st.metric(label="Odhadovaná celková cena", value=f"{celkova_cena:,.0f} CZK".replace(",", " "))
 
-# ZÁLOŽKA 4: TERMÍNY
-with tabs[3]:
+
+elif aktualni_stranka == "Termíny":
     st.header("Sjednejte si s námi termín")
     vybrane_datum = st.date_input("Zvolte preferované datum:", min_value=date.today())
     jmeno = st.text_input("Vaše jméno a příjmení:")
@@ -202,70 +236,64 @@ with tabs[3]:
             uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
             st.success("Děkujeme! Váš požadavek byl odeslán.")
 
-# ZÁLOŽKA 5: ADMINISTRACE
-if st.session_state.prihlasen:
-    with tabs[4]:
-        st.header("Administrace webu")
-        st.subheader("📅 Požadavky od zákazníků")
-        nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
-        
-        if not nevyresene:
-            st.info("Aktuálně nemáte žádné nové požadavky.")
-        else:
-            for i, term in enumerate(nevyresene):
-                with st.expander(f"Zákazník: {term['jmeno']} ({term['datum']})"):
-                    st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', 'Nezadáno')})")
-                    st.write(f"**Poznámka:** {term.get('poznamka', '')}")
-                    if st.button("Označit jako vyřízené", key=f"btn_{i}"):
-                        for idx, t in enumerate(st.session_state.terminy):
-                            if t == term:
-                                st.session_state.terminy[idx]["vyreseno"] = True
-                                break
-                        uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
-                        st.rerun()
 
-# ZÁLOŽKA 6: NÁVŠTĚVNOST
-if st.session_state.prihlasen:
-    with tabs[5]:
-        st.header("📊 Statistiky návštěvnosti")
-        
-        data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
-        
-        if not data_navstev:
-            st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
-        else:
-            # BEZPEČNÝ VÝPOČET: Ošetření struktury dat pro graf bez ohledu na starý formát
-            graf_data = {}
-            for den, data_dne in data_navstev.items():
-                if isinstance(data_dne, list):
-                    graf_data[den] = len(data_dne)
-                elif isinstance(data_dne, int):
-                    graf_data[den] = data_dne
-                else:
-                    graf_data[den] = 1
-            
-            st.subheader("Návštěvy po dnech")
-            st.bar_chart(graf_data)
-            
-            st.markdown("---")
-            
-            # Zobrazení detailů pro dnešní den
-            dnesni_datum = str(date.today())
-            st.subheader(f"Dnešní provoz ({dnesni_datum})")
-            
-            if dnesni_datum in data_navstev:
-                dnesni_navstevy = data_navstev[dnesni_datum]
-                
-                if isinstance(dnesni_navstevy, list):
-                    st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
-                    
-                    # Výpis časů a ID od nejnovějších
-                    for zaznam in reversed(dnesni_navstevy):
-                        if isinstance(zaznam, dict) and 'cas' in zaznam and 'id' in zaznam:
-                            st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
-                else:
-                    # Zpětná kompatibilita pro staré uložené záznamy
-                    st.write(f"**Celkem návštěv dnes:** {dnesni_navstevy}")
-                    st.write("*Detailní časy nejsou pro tyto starší testovací záznamy k dispozici.*")
+elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
+    st.header("Administrace webu")
+    st.subheader("📅 Požadavky od zákazníků")
+    nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
+    
+    if not nevyresene:
+        st.info("Aktuálně nemáte žádné nové požadavky.")
+    else:
+        for i, term in enumerate(nevyresene):
+            with st.expander(f"Zákazník: {term['jmeno']} ({term['datum']})"):
+                st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', 'Nezadáno')})")
+                st.write(f"**Poznámka:** {term.get('poznamka', '')}")
+                if st.button("Označit jako vyřízené", key=f"btn_{i}"):
+                    for idx, t in enumerate(st.session_state.terminy):
+                        if t == term:
+                            st.session_state.terminy[idx]["vyreseno"] = True
+                            break
+                    uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
+                    st.rerun()
+
+
+elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
+    st.header("📊 Statistiky návštěvnosti")
+    
+    data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
+    
+    if not data_navstev:
+        st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
+    else:
+        graf_data = {}
+        for den, data_dne in data_navstev.items():
+            if isinstance(data_dne, list):
+                graf_data[den] = len(data_dne)
+            elif isinstance(data_dne, int):
+                graf_data[den] = data_dne
             else:
-                st.write("Dnes zatím žádné návštěvy.")
+                graf_data[den] = 1
+        
+        st.subheader("Návštěvy po dnech")
+        st.bar_chart(graf_data)
+        
+        st.markdown("---")
+        
+        dnesni_datum = str(date.today())
+        st.subheader(f"Dnešní provoz ({dnesni_datum})")
+        
+        if dnesni_datum in data_navstev:
+            dnesni_navstevy = data_navstev[dnesni_datum]
+            
+            if isinstance(dnesni_navstevy, list):
+                st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
+                
+                for zaznam in reversed(dnesni_navstevy):
+                    if isinstance(zaznam, dict) and 'cas' in zaznam and 'id' in zaznam:
+                        st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
+            else:
+                st.write(f"**Celkem návštěv dnes:** {dnesni_navstevy}")
+                st.write("*Detailní časy nejsou pro tyto starší testovací záznamy k dispozici.*")
+        else:
+            st.write("Dnes zatím žádné návštěvy.")
