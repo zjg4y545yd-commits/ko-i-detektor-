@@ -5,8 +5,8 @@ from datetime import date, datetime
 import uuid
 import base64
 
-# Nastavení stránky
-st.set_page_config(page_title="Umělecké kovářství", layout="wide")
+# Nastavení stránky na široký profil
+st.set_page_config(page_title="Umělecké kovářství Štěpán Palla", layout="wide", initial_sidebar_state="collapsed")
 
 # --- FUNKCE PRO DATA A OBRÁZKY ---
 SOUBOR_TERMINY = "terminy.json"
@@ -23,7 +23,6 @@ def uloz_json(soubor, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 def nacti_obrazek_base64(cesta_k_souboru):
-    """Načte obrázek a převede ho do formátu pro CSS pozadí."""
     if os.path.exists(cesta_k_souboru):
         with open(cesta_k_souboru, "rb") as f:
             return base64.b64encode(f.read()).decode()
@@ -46,7 +45,6 @@ if "navsteva_zaznamenana" not in st.session_state:
     
     if dnes not in data_navstev:
         data_navstev[dnes] = []
-        
     if not isinstance(data_navstev[dnes], list):
         data_navstev[dnes] = []
         
@@ -54,24 +52,21 @@ if "navsteva_zaznamenana" not in st.session_state:
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
 # --- NAVIGACE ---
-seznam_stranek = ["Informace", "Fotogalerie", "Ceník a Kalkulačka", "Termíny"]
+seznam_stranek = ["Domů (Informace)", "Ukázky práce", "Kalkulačka zakázky", "Sjednat termín"]
 if st.session_state.prihlasen:
     seznam_stranek.extend(["Administrace", "Návštěvnost"])
 
-# Nahrazení tabs za dynamické menu
 aktualni_stranka = st.radio("Navigace", seznam_stranek, horizontal=True, label_visibility="collapsed")
 
-# --- CSS STYLING A DYNAMICKÉ POZADÍ ---
+# --- CSS STYLING A DYNAMICKÉ POZADÍ (PROFI VZHLED) ---
 obrazek_pozadi_base64 = nacti_obrazek_base64("pozadi.png")
 
-# Pokud jsme v Galerii nebo Administraci, dáme plné barvy bez obrázku
-if aktualni_stranka in ["Fotogalerie", "Administrace"] or not obrazek_pozadi_base64:
+if aktualni_stranka in ["Ukázky práce", "Administrace"] or not obrazek_pozadi_base64:
     css_pozadi = """
-    .stApp { background-color: #2e3033 !important; }
-    .main .block-container { background-color: #1a1b1c !important; }
+    .stApp { background-color: #1a1a1c !important; }
+    .main .block-container { background-color: #121212 !important; }
     """
 else:
-    # Pro ostatní stránky nastavíme obrázek a poloprůhledný kontejner pro čitelnost textu
     css_pozadi = f"""
     .stApp {{
         background-image: url("data:image/png;base64,{obrazek_pozadi_base64}");
@@ -80,181 +75,227 @@ else:
         background-attachment: fixed;
     }}
     .main .block-container {{
-        background-color: rgba(26, 27, 28, 0.85) !important; /* Poloprůhledná černá pro čitelnost */
-        backdrop-filter: blur(5px); /* Lehké rozmazání pozadí za textem */
+        background-color: rgba(18, 18, 18, 0.90) !important;
+        backdrop-filter: blur(8px);
     }}
     """
 
-# Přidání zbytku tvých stylů (nadpisy, tlačítka atd.)
 st.markdown(f"""
 <style>
 {css_pozadi}
-.main .block-container {{ padding: 3rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); color: #f5f5f5 !important; margin-top: 1rem; }}
-h1, h2, h3 {{ color: #ff6600 !important; font-family: 'Georgia', serif; }}
-p, label, .stMarkdown, [data-testid="stMarkdownContainer"] {{ color: #ffffff !important; font-size: 1.1rem; }}
-.stButton>button {{ background-color: #3a1c00 !important; color: #d4af37 !important; border: 1px solid #d4af37 !important; transition: 0.3s; }}
-.stButton>button:hover {{ background-color: #d4af37 !important; color: #111111 !important; }}
-/* Stylizace radio buttonů, aby vypadaly jako navigační lišta */
-div[role="radiogroup"] {{ flex-wrap: wrap; gap: 15px; margin-bottom: 20px; padding: 10px; background-color: rgba(0,0,0,0.5); border-radius: 8px; }}
-[data-testid="stExpander"] details, [data-testid="stExpander"] {{ background-color: #26282b !important; border: 1px solid #444 !important; border-radius: 8px; }}
-[data-testid="stExpander"] summary {{ background-color: #33363a !important; color: #ff6600 !important; }}
+/* Celkový kontejner */
+.main .block-container {{ 
+    padding: 2.5rem 4rem; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8); 
+    color: #eaeaea !important; 
+    margin-top: 1.5rem; 
+    border: 1px solid #333;
+}}
+
+/* Nadpisy */
+h1, h2, h3 {{ color: #d4af37 !important; font-family: 'Cinzel', 'Georgia', serif; letter-spacing: 1px; }}
+h1 {{ border-bottom: 2px solid #d4af37; padding-bottom: 10px; margin-bottom: 20px; }}
+
+/* Texty */
+p, li {{ font-size: 1.15rem; line-height: 1.6; color: #cccccc !important; }}
+
+/* Navigační menu z Radio buttonů */
+div[role="radiogroup"] {{ 
+    display: flex; justify-content: center; gap: 10px; 
+    background: linear-gradient(145deg, #1f1f22, #2a2a2d); 
+    padding: 15px; border-radius: 12px; border: 1px solid #444; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+    margin-bottom: 30px;
+}}
+div[role="radiogroup"] label {{ cursor: pointer; padding: 5px 10px; transition: 0.3s; }}
+div[role="radiogroup"] label:hover {{ color: #d4af37 !important; }}
+
+/* Tlačítka (Zlatý/Měděný vzhled) */
+.stButton>button {{ 
+    background: linear-gradient(135deg, #b87333 0%, #d4af37 100%) !important; 
+    color: #111 !important; 
+    font-weight: 800 !important; 
+    font-size: 1.1rem !important; 
+    border: none !important; 
+    border-radius: 8px !important; 
+    padding: 0.6rem 2.5rem !important; 
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2) !important; 
+    transition: all 0.3s ease !important;
+}}
+.stButton>button:hover {{ 
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5) !important; 
+    color: #000 !important;
+}}
+
+/* Expander (Přihlášení a administrace) */
+[data-testid="stExpander"] {{ background-color: #1e1e20 !important; border: 1px solid #444 !important; border-radius: 10px; }}
+[data-testid="stExpander"] summary {{ color: #d4af37 !important; font-weight: bold; }}
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- HLAVIČKA A PŘIHLAŠOVÁNÍ ---
-col_nadpis, col_login = st.columns([3, 1])
-with col_nadpis:
-    # Nahrazení textového nadpisu za obrázek pozadi2.png
+# --- HLAVIČKA A LOGO ---
+col_logo, col_login = st.columns([4, 1])
+with col_logo:
+    # Kontrola pro jpg i png formát loga
     if os.path.exists("pozadi2.png"):
-        st.image("pozadi2.png", width=400)
+        st.image("pozadi2.png", width=450)
+    elif os.path.exists("pozadi2.jpg"):
+        st.image("pozadi2.jpg", width=450)
     else:
-        st.title("Umělecké kovářství") # Záloha, kdyby se obrázek nenahrál správně
+        st.title("Umělecké kovářství Štěpán Palla")
 
 with col_login:
     if not st.session_state.prihlasen:
-        with st.expander("👤 Přihlášení pro správce"):
-            jmeno_prihlaseni = st.text_input("Jméno", key="in_jmeno")
-            heslo_prihlaseni = st.text_input("Heslo", type="password", key="in_heslo")
-            if st.button("Přihlásit"):
-                if jmeno_prihlaseni == "1" and heslo_prihlaseni == "1":
+        with st.expander("⚙️ Správa"):
+            jmeno = st.text_input("Jméno")
+            heslo = st.text_input("Heslo", type="password")
+            if st.button("Vstoupit"):
+                if jmeno == "1" and heslo == "1":
                     st.session_state.prihlasen = True
                     st.rerun()
                 else:
-                    st.error("Špatné jméno nebo heslo!")
+                    st.error("Přístup odepřen.")
     else:
-        st.markdown("### 👤 Přihlášen: kpala")
-        if st.button("Odhlásit se"):
+        st.success("Administrátor")
+        if st.button("Odhlásit"):
             st.session_state.prihlasen = False
             st.rerun()
 
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
 
-# --- ZOBRAZENÍ OBSAHU PODLE VYBRANÉ STRÁNKY ---
+# --- STRÁNKY ---
 
-if aktualni_stranka == "Informace":
-    st.header("O naší dílně")
-    st.write("""
-    Vítejte na stránkách našeho uměleckého kovářství. Specializujeme se na ruční výrobu a umělecké zpracování kovů s hlavním zaměřením na zakázkovou výrobu kovaných plotů a vjezdových bran.
+if aktualni_stranka == "Domů (Informace)":
+    st.markdown("## Poctivé kovářské řemeslo na míru")
     
-    Každý kus, který opustí naši dílnu, je výsledkem poctivé řemeslné práce, kde se tradiční kovářské postupy setkávají s přesností a důrazem na detail. Ať už hledáte robustní ochranu vašeho pozemku nebo elegantní vstupní prvek, navrhneme a vyrobíme řešení přesně na míru vašim představám a architekce vašeho domu.
+    col_text, col_vyhody = st.columns([1.2, 1])
     
-    Naše práce se vyznačuje vysokou odolností, kvalitní povrchovou úpravou a nadčasovým designem, který vydrží generace.
-    """)
-    
-    st.subheader("Naše hlavní služby")
-    st.markdown("""
-    * Kované brány (křídlové i posuvné)
-    * Kované ploty a výplně
-    * Vstupní dveře s kovanými prvky
-    * Restaurování historických kovářských děl
-    """)
+    with col_text:
+        st.write("""
+        Vítejte v naší dílně. Specializujeme se na ruční umělecké zpracování kovů. 
+        Naším hlavním zaměřením je **zakázková výroba kovaných plotů, vjezdových bran a mříží**.
+        
+        Každý kus, který opustí kovadlinu, je výsledkem tradičních postupů, 
+        kde se surová síla ohně potkává s absolutní přesností a citem pro detail.
+        Navrhneme řešení, které dokonale podtrhne architekturu vašeho domu a vydrží generace.
+        """)
+        st.markdown("### Naše služby")
+        st.markdown("🔸 **Kované vjezdové brány** (křídlové i posuvné automatické)<br>🔸 **Kované ploty a výplně zídek**<br>🔸 **Mříže, zábradlí a ocelové prvky**", unsafe_allow_html=True)
+
+    with col_vyhody:
+        st.markdown("### Proč si vybrat nás?")
+        st.info("🛡️ **Maximální odolnost**\n\nPoužíváme kvalitní žárové zinkování a kovářské barvy, které chrání kov před rzí na desítky let.")
+        st.info("🔨 **100% Ruční práce**\n\nŽádné sériové odlitky. Každý spoj a ornament je tvořen ručně.")
+        st.info("📐 **Návrh na míru**\n\nZaměření a konzultace přímo na místě instalace.")
 
 
-elif aktualni_stranka == "Fotogalerie":
-    st.header("Ukázky naší práce")
+elif aktualni_stranka == "Ukázky práce":
+    st.markdown("## Nahlédněte pod pokličku naší práce")
     
     if st.session_state.prihlasen:
-        st.subheader("📸 Správa fotografií (Administrátor)")
-        if not os.path.exists("fotogalerie"): 
-            os.makedirs("fotogalerie")
-            
-        uploaded_file = st.file_uploader("Vyberte obrázek (JPG, PNG) pro přidání do galerie", type=["jpg", "jpeg", "png"])
-        if uploaded_file is not None:
-            if st.button("Uložit fotku do galerie"):
-                with open(os.path.join("fotogalerie", uploaded_file.name), "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"Fotka {uploaded_file.name} byla úspěšně uložena!")
-                st.rerun()
-        st.markdown("---")
+        with st.expander("📸 Přidat nové fotografie"):
+            if not os.path.exists("fotogalerie"): 
+                os.makedirs("fotogalerie")
+            uploaded_file = st.file_uploader("Vyberte obrázek (JPG, PNG)", type=["jpg", "jpeg", "png"])
+            if uploaded_file:
+                if st.button("Nahrát na web"):
+                    with open(os.path.join("fotogalerie", uploaded_file.name), "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    st.success("Uloženo!")
+                    st.rerun()
 
     if os.path.exists("fotogalerie"):
         fotky = [f for f in os.listdir("fotogalerie") if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         if not fotky: 
-            st.write("Zatím zde nejsou žádné nahrané fotografie.")
+            st.info("Galerie se momentálně připravuje. Brzy zde uvidíte naše realizace.")
         else:
-            cols = st.columns(2)
+            cols = st.columns(3) # Změněno na 3 sloupce pro hezčí mřížku
             for i, fotka in enumerate(fotky):
-                with cols[i % 2]:
-                    st.image(os.path.join("fotogalerie", fotka), caption=fotka, use_container_width=True)
+                with cols[i % 3]:
+                    st.image(os.path.join("fotogalerie", fotka), use_container_width=True)
                     if st.session_state.prihlasen:
-                        if st.button(f"🗑️ Smazat fotku", key=f"smazat_{i}_{fotka}"):
-                            try:
-                                os.remove(os.path.join("fotogalerie", fotka))
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Nepodařilo se smazat soubor: {e}")
+                        if st.button("🗑️ Smazat", key=f"del_{i}"):
+                            os.remove(os.path.join("fotogalerie", fotka))
+                            st.rerun()
     else: 
-        st.write("Složka pro fotky zatím nebyla vytvořena.")
+        st.info("Galerie se momentálně připravuje.")
 
 
-elif aktualni_stranka == "Ceník a Kalkulačka":
-    st.header("Orientační kalkulačka zakázky")
-    st.write("Vyberte typ výrobku a zadejte požadovanou délku pro získání orientační ceny. Výpočet zohledňuje aktuální tržní cenu železa a náročnost ruční práce.")
+elif aktualni_stranka == "Kalkulačka zakázky":
+    st.markdown("## Získejte okamžitý odhad ceny")
+    st.write("Vyberte, co potřebujete vyrobit. Výpočet v reálném čase zohledňuje aktuální ceny hutních materiálů a časovou náročnost ruční kovářské práce.")
     
-    aktualni_cena_zeleza_za_kg = 28.50 
+    col_kalk, col_vysledek = st.columns([1, 1])
     
     koeficienty = {
-        "Kovaná brána": {"kg_na_metr": 55, "prace_na_metr": 6500},
-        "Kovaný plot": {"kg_na_metr": 35, "prace_na_metr": 4200},
-        "Kované dveře": {"kg_na_metr": 45, "prace_na_metr": 7000}
+        "Kovaná brána (vjezdová)": {"kg_na_metr": 55, "prace_na_metr": 6500},
+        "Kovaný plot (plotové dílce)": {"kg_na_metr": 35, "prace_na_metr": 4200},
+        "Kované dveře / mříže": {"kg_na_metr": 45, "prace_na_metr": 7000}
     }
     
-    vybrany_produkt = st.selectbox("Vyberte typ výrobku:", list(koeficienty.keys()))
-    delka_v_metrech = st.number_input("Zadejte celkovou délku (v metrech):", min_value=0.5, value=2.0, step=0.5)
-    
-    if st.button("Vypočítat orientační cenu"):
-        data_produktu = koeficienty[vybrany_produkt]
-        spotreba_zeleza_kg = data_produktu["kg_na_metr"] * delka_v_metrech
-        cena_za_material = spotreba_zeleza_kg * aktualni_cena_zeleza_za_kg
-        cena_za_praci = data_produktu["prace_na_metr"] * delka_v_metrech
-        celkova_cena = cena_za_material + cena_za_praci
+    with col_kalk:
+        vybrany_produkt = st.selectbox("Typ konstrukce:", list(koeficienty.keys()))
+        delka_v_metrech = st.number_input("Celková šířka/délka v metrech:", min_value=0.5, value=3.0, step=0.5)
+        pocitat = st.button("Vypočítat cenu")
         
-        st.markdown("### Výsledek výpočtu")
-        st.write(f"Zadaný rozměr: **{delka_v_metrech} m**")
-        st.write(f"Typ konstrukce: **{vybrany_produkt}**")
-        st.metric(label="Odhadovaná celková cena", value=f"{celkova_cena:,.0f} CZK".replace(",", " "))
+    with col_vysledek:
+        if pocitat:
+            aktualni_cena_zeleza_za_kg = 28.50 
+            data = koeficienty[vybrany_produkt]
+            cena = (data["kg_na_metr"] * delka_v_metrech * aktualni_cena_zeleza_za_kg) + (data["prace_na_metr"] * delka_v_metrech)
+            
+            st.markdown(f"""
+            <div style='background-color: #2a2a2d; padding: 20px; border-radius: 10px; border-left: 5px solid #d4af37;'>
+                <h4 style='margin-top: 0; color: white;'>Předběžná kalkulace</h4>
+                <p style='margin-bottom: 5px;'>Produkt: <b>{vybrany_produkt}</b></p>
+                <p style='margin-bottom: 15px;'>Rozměr: <b>{delka_v_metrech} m</b></p>
+                <h2 style='color: #d4af37; margin: 0;'>{cena:,.0f} Kč</h2>
+                <p style='font-size: 0.9rem; color: #888; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 
-elif aktualni_stranka == "Termíny":
-    st.header("Sjednejte si s námi termín")
-    vybrane_datum = st.date_input("Zvolte preferované datum:", min_value=date.today())
-    jmeno = st.text_input("Vaše jméno a příjmení:")
-    kontakt_volba = st.radio("Jak si přejete být kontaktováni?", ["Telefonicky", "E-mailem"])
+elif aktualni_stranka == "Sjednat termín":
+    st.markdown("## Napište nám o svém projektu")
+    st.write("Zanechte nám na sebe kontakt a my se vám co nejdříve ozveme pro probrání detailů nebo zaměření.")
     
-    if kontakt_volba == "Telefonicky":
-        kontakt_udaj = st.text_input("Váš telefon a předvolba:")
-    else:
-        kontakt_udaj = st.text_input("Vaše e-mailová adresa:")
-        
-    poznamka = st.text_area("O co máte zájem? (Volitelná poznámka)")
-    
-    if st.button("Odeslat požadavek na termín"):
-        if not jmeno or not kontakt_udaj:
-            st.error("Pro odeslání prosím vyplňte své jméno a kontaktní údaj.")
-        else:
-            st.session_state.terminy.append({
-                "datum": str(vybrane_datum), "jmeno": jmeno, "typ_kontaktu": kontakt_volba,
-                "kontakt": kontakt_udaj, "poznamka": poznamka, "vyreseno": False
-            })
-            uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
-            st.success("Děkujeme! Váš požadavek byl odeslán.")
+    with st.container():
+        c1, c2 = st.columns(2)
+        with c1:
+            jmeno = st.text_input("Vaše jméno a příjmení *")
+            kontakt_volba = st.selectbox("Preferovaný způsob komunikace", ["Telefonicky", "E-mailem"])
+            kontakt_udaj = st.text_input("Váš telefon nebo e-mail *")
+        with c2:
+            poznamka = st.text_area("Stručný popis toho, co poptáváte", height=130)
+            
+        if st.button("Odeslat nezávaznou poptávku"):
+            if not jmeno or not kontakt_udaj:
+                st.error("Vyplňte prosím své jméno a kontakt.")
+            else:
+                st.session_state.terminy.append({
+                    "datum": str(date.today()), "jmeno": jmeno, "typ_kontaktu": kontakt_volba,
+                    "kontakt": kontakt_udaj, "poznamka": poznamka, "vyreseno": False
+                })
+                uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
+                st.success("Vaše poptávka byla úspěšně odeslána! Brzy se ozveme.")
 
 
 elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
-    st.header("Administrace webu")
-    st.subheader("📅 Požadavky od zákazníků")
+    st.markdown("## 📅 Správa poptávek")
     nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
     
     if not nevyresene:
-        st.info("Aktuálně nemáte žádné nové požadavky.")
+        st.success("Nemáte žádné nevyřízené poptávky.")
     else:
         for i, term in enumerate(nevyresene):
-            with st.expander(f"Zákazník: {term['jmeno']} ({term['datum']})"):
-                st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', 'Nezadáno')})")
-                st.write(f"**Poznámka:** {term.get('poznamka', '')}")
-                if st.button("Označit jako vyřízené", key=f"btn_{i}"):
+            with st.expander(f"🔴 Poptávka: {term['jmeno']} (Přijato: {term['datum']})"):
+                st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', '')})")
+                st.write(f"**Text poptávky:** {term.get('poznamka', 'Bez poznámky')}")
+                if st.button("Označit jako vyřízeno", key=f"vyresit_{i}"):
                     for idx, t in enumerate(st.session_state.terminy):
                         if t == term:
                             st.session_state.terminy[idx]["vyreseno"] = True
@@ -262,43 +303,11 @@ elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
                     uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
                     st.rerun()
 
-
 elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
-    st.header("📊 Statistiky návštěvnosti")
-    
+    st.markdown("## 📊 Statistiky webu")
     data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
-    
     if not data_navstev:
-        st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
+        st.info("Zatím nejsou data.")
     else:
-        graf_data = {}
-        for den, data_dne in data_navstev.items():
-            if isinstance(data_dne, list):
-                graf_data[den] = len(data_dne)
-            elif isinstance(data_dne, int):
-                graf_data[den] = data_dne
-            else:
-                graf_data[den] = 1
-        
-        st.subheader("Návštěvy po dnech")
+        graf_data = {den: (len(d) if isinstance(d, list) else d) for den, d in data_navstev.items()}
         st.bar_chart(graf_data)
-        
-        st.markdown("---")
-        
-        dnesni_datum = str(date.today())
-        st.subheader(f"Dnešní provoz ({dnesni_datum})")
-        
-        if dnesni_datum in data_navstev:
-            dnesni_navstevy = data_navstev[dnesni_datum]
-            
-            if isinstance(dnesni_navstevy, list):
-                st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
-                
-                for zaznam in reversed(dnesni_navstevy):
-                    if isinstance(zaznam, dict) and 'cas' in zaznam and 'id' in zaznam:
-                        st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
-            else:
-                st.write(f"**Celkem návštěv dnes:** {dnesni_navstevy}")
-                st.write("*Detailní časy nejsou pro tyto starší testovací záznamy k dispozici.*")
-        else:
-            st.write("Dnes zatím žádné návštěvy.")
