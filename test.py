@@ -105,7 +105,12 @@ div[role="radiogroup"] {{ flex-wrap: wrap; gap: 15px; margin-bottom: 20px; paddi
 # --- HLAVIČKA A PŘIHLAŠOVÁNÍ ---
 col_nadpis, col_login = st.columns([3, 1])
 with col_nadpis:
-    st.title("Umělecké kovářství")
+    # Nahrazení textového nadpisu za obrázek pozadi2.jpg
+    if os.path.exists("pozadi2.jpg"):
+        st.image("pozadi2.jpg", width=400)
+    else:
+        st.title("Umělecké kovářství") # Záloha, kdyby se obrázek nenahrál správně
+
 with col_login:
     if not st.session_state.prihlasen:
         with st.expander("👤 Přihlášení pro správce"):
@@ -186,114 +191,4 @@ elif aktualni_stranka == "Fotogalerie":
 
 elif aktualni_stranka == "Ceník a Kalkulačka":
     st.header("Orientační kalkulačka zakázky")
-    st.write("Vyberte typ výrobku a zadejte požadovanou délku pro získání orientační ceny. Výpočet zohledňuje aktuální tržní cenu železa a náročnost ruční práce.")
-    
-    aktualni_cena_zeleza_za_kg = 28.50 
-    
-    koeficienty = {
-        "Kovaná brána": {"kg_na_metr": 55, "prace_na_metr": 6500},
-        "Kovaný plot": {"kg_na_metr": 35, "prace_na_metr": 4200},
-        "Kované dveře": {"kg_na_metr": 45, "prace_na_metr": 7000}
-    }
-    
-    vybrany_produkt = st.selectbox("Vyberte typ výrobku:", list(koeficienty.keys()))
-    delka_v_metrech = st.number_input("Zadejte celkovou délku (v metrech):", min_value=0.5, value=2.0, step=0.5)
-    
-    if st.button("Vypočítat orientační cenu"):
-        data_produktu = koeficienty[vybrany_produkt]
-        spotreba_zeleza_kg = data_produktu["kg_na_metr"] * delka_v_metrech
-        cena_za_material = spotreba_zeleza_kg * aktualni_cena_zeleza_za_kg
-        cena_za_praci = data_produktu["prace_na_metr"] * delka_v_metrech
-        celkova_cena = cena_za_material + cena_za_praci
-        
-        st.markdown("### Výsledek výpočtu")
-        st.write(f"Zadaný rozměr: **{delka_v_metrech} m**")
-        st.write(f"Typ konstrukce: **{vybrany_produkt}**")
-        st.metric(label="Odhadovaná celková cena", value=f"{celkova_cena:,.0f} CZK".replace(",", " "))
-
-
-elif aktualni_stranka == "Termíny":
-    st.header("Sjednejte si s námi termín")
-    vybrane_datum = st.date_input("Zvolte preferované datum:", min_value=date.today())
-    jmeno = st.text_input("Vaše jméno a příjmení:")
-    kontakt_volba = st.radio("Jak si přejete být kontaktováni?", ["Telefonicky", "E-mailem"])
-    
-    if kontakt_volba == "Telefonicky":
-        kontakt_udaj = st.text_input("Váš telefon a předvolba:")
-    else:
-        kontakt_udaj = st.text_input("Vaše e-mailová adresa:")
-        
-    poznamka = st.text_area("O co máte zájem? (Volitelná poznámka)")
-    
-    if st.button("Odeslat požadavek na termín"):
-        if not jmeno or not kontakt_udaj:
-            st.error("Pro odeslání prosím vyplňte své jméno a kontaktní údaj.")
-        else:
-            st.session_state.terminy.append({
-                "datum": str(vybrane_datum), "jmeno": jmeno, "typ_kontaktu": kontakt_volba,
-                "kontakt": kontakt_udaj, "poznamka": poznamka, "vyreseno": False
-            })
-            uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
-            st.success("Děkujeme! Váš požadavek byl odeslán.")
-
-
-elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
-    st.header("Administrace webu")
-    st.subheader("📅 Požadavky od zákazníků")
-    nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
-    
-    if not nevyresene:
-        st.info("Aktuálně nemáte žádné nové požadavky.")
-    else:
-        for i, term in enumerate(nevyresene):
-            with st.expander(f"Zákazník: {term['jmeno']} ({term['datum']})"):
-                st.write(f"**Kontakt:** {term['kontakt']} ({term.get('typ_kontaktu', 'Nezadáno')})")
-                st.write(f"**Poznámka:** {term.get('poznamka', '')}")
-                if st.button("Označit jako vyřízené", key=f"btn_{i}"):
-                    for idx, t in enumerate(st.session_state.terminy):
-                        if t == term:
-                            st.session_state.terminy[idx]["vyreseno"] = True
-                            break
-                    uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
-                    st.rerun()
-
-
-elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
-    st.header("📊 Statistiky návštěvnosti")
-    
-    data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
-    
-    if not data_navstev:
-        st.info("Zatím nebyla zaznamenána žádná návštěvnost.")
-    else:
-        graf_data = {}
-        for den, data_dne in data_navstev.items():
-            if isinstance(data_dne, list):
-                graf_data[den] = len(data_dne)
-            elif isinstance(data_dne, int):
-                graf_data[den] = data_dne
-            else:
-                graf_data[den] = 1
-        
-        st.subheader("Návštěvy po dnech")
-        st.bar_chart(graf_data)
-        
-        st.markdown("---")
-        
-        dnesni_datum = str(date.today())
-        st.subheader(f"Dnešní provoz ({dnesni_datum})")
-        
-        if dnesni_datum in data_navstev:
-            dnesni_navstevy = data_navstev[dnesni_datum]
-            
-            if isinstance(dnesni_navstevy, list):
-                st.write(f"**Celkem návštěv dnes:** {len(dnesni_navstevy)}")
-                
-                for zaznam in reversed(dnesni_navstevy):
-                    if isinstance(zaznam, dict) and 'cas' in zaznam and 'id' in zaznam:
-                        st.write(f"🕒 **{zaznam['cas']}** | 🆔 Návštěvník (ID sezení): `{zaznam['id']}`")
-            else:
-                st.write(f"**Celkem návštěv dnes:** {dnesni_navstevy}")
-                st.write("*Detailní časy nejsou pro tyto starší testovací záznamy k dispozici.*")
-        else:
-            st.write("Dnes zatím žádné návštěvy.")
+    st
