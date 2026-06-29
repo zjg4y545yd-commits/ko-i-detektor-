@@ -106,8 +106,8 @@ div[role="radiogroup"] {{ flex-wrap: wrap; gap: 15px; margin-bottom: 20px; paddi
 col_nadpis, col_login = st.columns([3, 1])
 with col_nadpis:
     # Nahrazení textového nadpisu za obrázek pozadi2.png
-    if os.path.exists("pozadi2.jpg"):
-        st.image("pozadi2.jpg", width=400)
+    if os.path.exists("pozadi2.png"):
+        st.image("pozadi2.png", width=400)
     else:
         st.title("Umělecké kovářství") # Záloha, kdyby se obrázek nenahrál správně
 
