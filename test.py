@@ -22,6 +22,12 @@ def uloz_json(soubor, data):
     with open(soubor, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+def nacti_obrazek_base64(cesta_k_souboru):
+    if os.path.exists(cesta_k_souboru):
+        with open(cesta_k_souboru, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
 # Inicializace session state
 if "terminy" not in st.session_state:
     st.session_state.terminy = nacti_json(SOUBOR_TERMINY, [])
@@ -70,7 +76,7 @@ h1, h2, h3, p, span, div {
     font-family: 'Inter', sans-serif;
 }
 
-/* Název v levém rohu (nahrazuje logo z obrázku) */
+/* Název v levém rohu */
 .sidebar-logo-text {
     font-size: 1.2rem;
     font-weight: 700;
@@ -83,11 +89,9 @@ h1, h2, h3, p, span, div {
 }
 
 /* --- HACK NA MENU (Úprava Radio buttonů na vzhled seznamu) --- */
-/* Skrytí klasických kroužků u výběru */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span[data-baseweb="radio"] {
     display: none;
 }
-/* Obal položky v menu */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
     padding: 12px 15px;
     border-radius: 8px;
@@ -98,18 +102,15 @@ h1, h2, h3, p, span, div {
     display: flex;
     align-items: center;
 }
-/* Efekt po najetí myší */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
-/* Text položky menu */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div {
     font-size: 0.95rem;
     font-weight: 500;
     margin-left: 5px;
 }
 
-/* Nadpisy sekcí v menu (např. "Programy" z obrázku) */
 .menu-section-title {
     font-size: 0.75rem;
     color: #8b8a9d;
@@ -120,15 +121,20 @@ h1, h2, h3, p, span, div {
     padding-left: 5px;
 }
 
-/* Hlavní poutač (Hero Banner - nahrazuje ten zelený z obrázku) */
+/* Hlavní poutač s černým pozadím pro plynulé splynutí s fotkou loga */
 .hero-banner {
-    background: linear-gradient(135deg, #2b1f42 0%, #171527 100%);
+    background: #000000;
     border: 1px solid #3d355c;
     border-radius: 16px;
-    padding: 3rem 2rem;
+    padding: 2rem 2rem 3rem 2rem;
     text-align: center;
     margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+.hero-banner img {
+    max-width: 90%;
+    height: auto;
+    margin-bottom: 1.5rem;
 }
 .hero-banner h1 {
     font-size: 2.8rem;
@@ -169,7 +175,7 @@ h1, h2, h3, p, span, div {
 
 /* Skrytí výchozího tlačítka popoveru pro přihlášení a jeho úprava */
 [data-testid="stPopover"] > button {
-    background-color: #c05c5c !important; /* Barva profilového kolečka z předlohy */
+    background-color: #c05c5c !important;
     color: white !important;
     border-radius: 50% !important;
     width: 45px !important;
@@ -187,18 +193,17 @@ h1, h2, h3, p, span, div {
     margin: 0;
 }
 [data-testid="stPopover"] > button svg {
-    display: none; /* Skryje šipku v tlačítku */
+    display: none; 
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- LEVÉ POSTrANNÍ MENU (SIDEBAR) ---
+# --- LEVÉ POSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
-    st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-logo-text'>Kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
-    # Položky menu s emoji (suplují ikony z obrázku)
     seznam_stranek = ["🏠 Domů (Informace)", "🔨 Ukázky práce", "🧮 Kalkulačka zakázky", "✉️ Sjednat termín"]
     
     if st.session_state.prihlasen:
@@ -207,15 +212,12 @@ with st.sidebar:
 
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
     
-    # Získání čistého názvu stránky bez emoji pro logiku
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
 
 # --- HORNÍ LIŠTA A PŘIHLÁŠENÍ (PRAVÝ HORNÍ ROH) ---
-# Využijeme sloupce pro natlačení profilového tlačítka doprava
 col_spacer1, col_spacer2, col_login = st.columns([8, 1, 1])
 
 with col_login:
-    # Používáme st.popover (vyskakovací okno po kliknutí), které stylizujeme jako profilové kolečko
     with st.popover("ŠP"): 
         if not st.session_state.prihlasen:
             st.markdown("**Správa webu**")
@@ -238,10 +240,21 @@ st.markdown("<br>", unsafe_allow_html=True)
 # --- HLAVNÍ OBSAHOVÉ STRÁNKY ---
 
 if aktualni_stranka == "Domů (Informace)":
-    # Hlavní Banner ve stylu "OK RADAR" z obrázku
-    st.markdown("""
+    
+    # Načtení fotky loga
+    logo_base64 = nacti_obrazek_base64("pozadi2.jpg")
+    
+    if logo_base64:
+        # Pokud fotka existuje, vložíme ji do HTML
+        zobrazeni_nadpisu = f'<img src="data:image/jpeg;base64,{logo_base64}" alt="Umělecké kovářství Štěpán Palla">'
+    else:
+        # Záložní varianta, pokud by fotka chyběla
+        zobrazeni_nadpisu = '<h1>Umělecké kovářství<br>Štěpán Palla</h1>'
+
+    # Hlavní Banner s černým pozadím a integrovanou fotkou loga
+    st.markdown(f"""
     <div class="hero-banner">
-        <h1>Poctivé kovářské řemeslo</h1>
+        {zobrazeni_nadpisu}
         <p>Zakázková výroba kovaných plotů, vjezdových bran a mříží. Každý kus, který opustí naši kovadlinu, je výsledkem tradičních postupů, kde se surová síla ohně potkává s absolutní přesností a citem pro detail.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -335,7 +348,7 @@ elif aktualni_stranka == "Kalkulačka zakázky":
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #fff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #666; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
+                <p style='font-size: 0.85rem; color: #666; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu a montáž.</p>
             </div>
             """, unsafe_allow_html=True)
 
