@@ -218,7 +218,7 @@ with st.sidebar:
 col_spacer1, col_spacer2, col_login = st.columns([8, 1, 1])
 
 with col_login:
-    with st.popover("ŠP"): 
+    with st.popover("Správce"): 
         if not st.session_state.prihlasen:
             st.markdown("**Správa webu**")
             jmeno = st.text_input("Jméno")
@@ -242,11 +242,11 @@ st.markdown("<br>", unsafe_allow_html=True)
 if aktualni_stranka == "Domů (Informace)":
     
     # Načtení fotky loga
-    logo_base64 = nacti_obrazek_base64("pozadi2.jpg")
+    logo_base64 = nacti_obrazek_base64("pozadi2.ppg")
     
     if logo_base64:
         # Pokud fotka existuje, vložíme ji do HTML
-        zobrazeni_nadpisu = f'<img src="data:image/jpeg;base64,{logo_base64}" alt="Umělecké kovářství Štěpán Palla">'
+        zobrazeni_nadpisu = f'<img src="data:image/png;base64,{logo_base64}" alt="Umělecké kovářství Štěpán Palla">'
     else:
         # Záložní varianta, pokud by fotka chyběla
         zobrazeni_nadpisu = '<h1>Umělecké kovářství<br>Štěpán Palla</h1>'
