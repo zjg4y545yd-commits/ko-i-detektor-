@@ -215,11 +215,11 @@ p, span, div, label {
     box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3) !important;
 }
 
-/* Profilové kolečko v pravém horním rohu */
+/* Profilové kolečko (nyní v levém horním rohu) */
 [data-testid="stPopover"] > button {
-    background-color: #36304a !important; 
+    background-color: transparent !important; 
     color: #c5a059 !important;
-    border-radius: 50% !important;
+    border-radius: 5px !important;
     width: 45px !important;
     height: 45px !important;
     padding: 0 !important;
@@ -227,6 +227,11 @@ p, span, div, label {
     align-items: center !important;
     justify-content: center !important;
     font-weight: bold !important;
+    border: 1px solid #36304a !important;
+    margin-bottom: 15px;
+}
+[data-testid="stPopover"] > button:hover {
+    background-color: rgba(197, 160, 89, 0.08) !important;
     border: 1px solid #c5a059 !important;
 }
 [data-testid="stPopover"] > button > div > div > p {
@@ -242,7 +247,26 @@ p, span, div, label {
 
 # --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
-    # Načtení loga v JPG formátu do levého horního rohu
+    
+    # --- PŘIHLÁŠENÍ (LEVÝ HORNÍ ROH) ---
+    with st.popover("ŠP"): 
+        if not st.session_state.prihlasen:
+            st.markdown("**Správa webu**")
+            jmeno = st.text_input("Jméno")
+            heslo = st.text_input("Heslo", type="password")
+            if st.button("Vstoupit", use_container_width=True):
+                if jmeno == "1" and heslo == "1":
+                    st.session_state.prihlasen = True
+                    st.rerun()
+                else:
+                    st.error("Přístup odepřen.")
+        else:
+            st.success("Přihlášen: Admin")
+            if st.button("Odhlásit", use_container_width=True):
+                st.session_state.prihlasen = False
+                st.rerun()
+
+    # Načtení loga v JPG formátu
     foto_logo = nacti_obrazek_base64("pozadi2.jpg")
     if foto_logo:
         st.markdown(f"""
@@ -263,29 +287,6 @@ with st.sidebar:
 
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
-
-# --- HORNÍ LIŠTA A PŘIHLÁŠENÍ (PRAVÝ HORNÍ ROH) ---
-col_spacer1, col_spacer2, col_login = st.columns([8, 1, 1])
-
-with col_login:
-    with st.popover("ŠP"): 
-        if not st.session_state.prihlasen:
-            st.markdown("**Správa webu**")
-            jmeno = st.text_input("Jméno")
-            heslo = st.text_input("Heslo", type="password")
-            if st.button("Vstoupit", use_container_width=True):
-                if jmeno == "1" and heslo == "1":
-                    st.session_state.prihlasen = True
-                    st.rerun()
-                else:
-                    st.error("Přístup odepřen.")
-        else:
-            st.success("Přihlášen: Admin")
-            if st.button("Odhlásit", use_container_width=True):
-                st.session_state.prihlasen = False
-                st.rerun()
-
-st.markdown("<br>", unsafe_allow_html=True)
 
 # --- HLAVNÍ OBSAHOVÉ STRÁNKY ---
 
