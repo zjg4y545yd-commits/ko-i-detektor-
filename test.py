@@ -22,6 +22,12 @@ def uloz_json(soubor, data):
     with open(soubor, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+def nacti_obrazek_base64(cesta_k_souboru):
+    if os.path.exists(cesta_k_souboru):
+        with open(cesta_k_souboru, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
 # Inicializace session state
 if "terminy" not in st.session_state:
     st.session_state.terminy = nacti_json(SOUBOR_TERMINY, [])
@@ -70,7 +76,21 @@ h1, h2, h3, p, span, div {
     font-family: 'Inter', sans-serif;
 }
 
-/* Název v levém rohu (nahrazuje logo z obrázku) */
+/* Kontejner pro logo v levém rohu */
+.sidebar-logo-container {
+    text-align: center;
+    padding: 10px 0 15px 0;
+    border-bottom: 1px solid #2d2a45;
+    margin-bottom: 20px;
+}
+.sidebar-logo-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Záložní text, pokud by se obrázek nenačetl */
 .sidebar-logo-text {
     font-size: 1.2rem;
     font-weight: 700;
@@ -120,7 +140,7 @@ h1, h2, h3, p, span, div {
     padding-left: 5px;
 }
 
-/* Hlavní poutač (Hero Banner - nahrazuje ten zelený z obrázku) */
+/* Hlavní poutač (Hero Banner) */
 .hero-banner {
     background: linear-gradient(135deg, #2b1f42 0%, #171527 100%);
     border: 1px solid #3d355c;
@@ -192,9 +212,20 @@ h1, h2, h3, p, span, div {
 </style>
 """, unsafe_allow_html=True)
 
-# --- LEVÉ POSTrANNÍ MENU (SIDEBAR) ---
+# --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
-    st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
+    # Načtení loga v JPG formátu do levého horního rohu
+    foto_logo = nacti_obrazek_base64("pozadi2.jpg")
+    if foto_logo:
+        st.markdown(f"""
+        <div class="sidebar-logo-container">
+            <img src="data:image/jpeg;base64,{foto_logo}" class="sidebar-logo-img" alt="Logo">
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Záložní text, pokud soubor na disku chybí
+        st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
+        st.error("Soubor 'pozadi2.jpg' nebyl nalezen ve složce s programem.")
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
@@ -211,11 +242,9 @@ with st.sidebar:
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
 
 # --- HORNÍ LIŠTA A PŘIHLÁŠENÍ (PRAVÝ HORNÍ ROH) ---
-# Využijeme sloupce pro natlačení profilového tlačítka doprava
 col_spacer1, col_spacer2, col_login = st.columns([8, 1, 1])
 
 with col_login:
-    # Používáme st.popover (vyskakovací okno po kliknutí), které stylizujeme jako profilové kolečko
     with st.popover("ŠP"): 
         if not st.session_state.prihlasen:
             st.markdown("**Správa webu**")
@@ -335,7 +364,7 @@ elif aktualni_stranka == "Kalkulačka zakázky":
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #fff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #666; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
+                <p style='font-size: 0.85rem; color: #666; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
             </div>
             """, unsafe_allow_html=True)
 
