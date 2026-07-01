@@ -255,7 +255,7 @@ with st.sidebar:
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
-    seznam_stranek = [" Informace", " Ukázky práce", " Kalkulace zakázky (ceník)", "✉️ Sjednat termín"]
+    seznam_stranek = ["🏠 Domů (Informace)", "🔨 Ukázky práce", "🧮 Kalkulačka zakázky", "✉️ Sjednat termín"]
     
     if st.session_state.prihlasen:
         st.markdown("<div class='menu-section-title'>Správa webu</div>", unsafe_allow_html=True)
