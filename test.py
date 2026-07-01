@@ -321,6 +321,15 @@ if aktualni_stranka == "Domů (Informace)":
         </div>
         """, unsafe_allow_html=True)
 
+    # VLOŽENÍ PODPISU DO PRAVÉHO DOLNÍHO ROHU
+    foto_podpis = nacti_obrazek_base64("podpis.png")
+    if foto_podpis:
+        st.markdown(f"""
+        <div style="display: flex; justify-content: flex-end; margin-top: 5px; padding-right: 15px;">
+            <img src="data:image/png;base64,{foto_podpis}" alt="Podpis" style="max-width: 250px; opacity: 0.85; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));">
+        </div>
+        """, unsafe_allow_html=True)
+
 elif aktualni_stranka == "Ukázky práce":
     st.markdown("<h2>Ukázky naší práce</h2>", unsafe_allow_html=True)
     
