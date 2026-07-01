@@ -215,7 +215,7 @@ h1, h2, h3, p, span, div {
 # --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
     # Načtení loga v JPG formátu do levého horního rohu
-    foto_logo = nacti_obrazek_base64("pozadi2.jpg")
+    foto_logo = nacti_obrazek_base64("pozadi2.png")
     if foto_logo:
         st.markdown(f"""
         <div class="sidebar-logo-container">
@@ -225,7 +225,7 @@ with st.sidebar:
     else:
         # Záložní text, pokud soubor na disku chybí
         st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
-        st.error("Soubor 'pozadi2.jpg' nebyl nalezen ve složce s programem.")
+        st.error("Soubor 'pozadi2.png' nebyl nalezen ve složce s programem.")
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
