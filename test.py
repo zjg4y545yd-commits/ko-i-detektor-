@@ -51,28 +51,35 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING (Vzhled podle předlohy dashboardu) ---
+# --- CSS STYLING (Prémiový kovářský vizuál) ---
 st.markdown("""
 <style>
-/* Základní barvy a pozadí podle obrázku */
+/* Import prémiového uměleckého písma Cinzel z Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;500;600&display=swap');
+
+/* Základní barvy a pozadí */
 [data-testid="stAppViewContainer"] {
-    background-color: #13111c !important; /* Tmavé pozadí hlavní části */
+    background-color: #110f16 !important; /* Temné grafitové pozadí */
     color: #e2e8f0;
 }
 [data-testid="stSidebar"] {
-    background-color: #1e1b30 !important; /* Tmavě fialové/modré pozadí menu */
-    border-right: 1px solid #2d2a45;
+    background-color: #171520 !important; /* Sladěné tmavé menu */
+    border-right: 1px solid #2a2538;
 }
 [data-testid="stHeader"] {
     background-color: transparent !important;
 }
 
-/* Skrytí horního panelu u postranního menu pro čistší vzhled */
+/* Skrytí horního panelu u postranního menu */
 [data-testid="stSidebarNav"] { display: none; }
 
-/* Stylování textů */
-h1, h2, h3, p, span, div {
-    color: #e2e8f0;
+/* Typografie - Nadpisy mají umělecký font, texty zůstávají čisté */
+h1, h2, h3 {
+    font-family: 'Cinzel', serif !important;
+    color: #f1f5f9 !important;
+    letter-spacing: 1px;
+}
+p, span, div, label {
     font-family: 'Inter', sans-serif;
 }
 
@@ -80,7 +87,7 @@ h1, h2, h3, p, span, div {
 .sidebar-logo-container {
     text-align: center;
     padding: 10px 0 15px 0;
-    border-bottom: 1px solid #2d2a45;
+    border-bottom: 1px solid #2a2538;
     margin-bottom: 20px;
 }
 .sidebar-logo-img {
@@ -90,107 +97,128 @@ h1, h2, h3, p, span, div {
     margin: 0 auto;
 }
 
-/* Záložní text, pokud by se obrázek nenačetl */
+/* Záložní text pro logo */
 .sidebar-logo-text {
-    font-size: 1.2rem;
+    font-family: 'Cinzel', serif !important;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #c5a059;
     padding: 10px 0 20px 0;
-    border-bottom: 1px solid #2d2a45;
+    border-bottom: 1px solid #2a2538;
     margin-bottom: 20px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    text-align: center;
 }
 
-/* --- HACK NA MENU (Úprava Radio buttonů na vzhled seznamu) --- */
-/* Skrytí klasických kroužků u výběru */
+/* --- ÚPRAVA POLOŽEK V MENU --- */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span[data-baseweb="radio"] {
     display: none;
 }
-/* Obal položky v menu */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
     padding: 12px 15px;
     border-radius: 8px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     cursor: pointer;
     background-color: transparent;
-    transition: background-color 0.2s, color 0.2s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
 }
-/* Efekt po najetí myší */
+/* Aktivní/Hover efekt v menu s nádechem bronzu */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(197, 160, 89, 0.08);
+    border-left: 3px solid #c5a059;
 }
-/* Text položky menu */
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label div {
     font-size: 0.95rem;
     font-weight: 500;
     margin-left: 5px;
+    color: #cbd5e1;
 }
 
-/* Nadpisy sekcí v menu (např. "Programy" z obrázku) */
 .menu-section-title {
     font-size: 0.75rem;
-    color: #8b8a9d;
+    color: #71717a;
     text-transform: uppercase;
     font-weight: 600;
     margin-top: 25px;
     margin-bottom: 10px;
     padding-left: 5px;
+    letter-spacing: 1px;
 }
 
-/* Hlavní poutač (Hero Banner) */
+/* Hlavní poutač (Hero Banner) - Styl hluboké kovářské noci */
 .hero-banner {
-    background: linear-gradient(135deg, #2b1f42 0%, #171527 100%);
-    border: 1px solid #3d355c;
+    background: linear-gradient(135deg, #1c1924 0%, #121017 100%);
+    border: 1px solid #36304a;
     border-radius: 16px;
-    padding: 3rem 2rem;
+    padding: 3.5rem 2rem;
     text-align: center;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin-bottom: 2.5rem;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 .hero-banner h1 {
-    font-size: 2.8rem;
-    font-weight: 800;
-    margin-bottom: 10px;
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 15px;
     color: #ffffff;
     border: none;
 }
 .hero-banner p {
-    font-size: 1.1rem;
-    color: #a09eb5;
-    max-width: 700px;
+    font-size: 1.15rem;
+    color: #94a3b8;
+    max-width: 750px;
     margin: 0 auto;
+    line-height: 1.6;
 }
 
-/* Karta / Obsahové bloky */
+/* Obsahové bloky s efektem sálajícího tepla (Hover zář) */
 .content-card {
-    background-color: #1a1829;
-    border: 1px solid #2d2a45;
+    background-color: #16141d;
+    border: 1px solid #2a2538;
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
     margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.content-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(197, 160, 89, 0.12); /* Jemný bronzový svit výhně */
+    border-color: #453d5a;
 }
 
-/* Styl tlačítek (fialové podle obrázku) */
+/* Rámečky pro obrázky v galerii */
+.stImage img {
+    border-radius: 8px !important;
+    border: 1px solid #2a2538 !important;
+    transition: transform 0.3s ease;
+}
+.stImage img:hover {
+    transform: scale(1.02);
+}
+
+/* Nová prémiová kovářská tlačítka (Barva kovaného bronzu/mosazi) */
 .stButton>button {
-    background-color: #6941c6 !important;
-    color: white !important;
+    background-color: #c5a059 !important;
+    color: #110f16 !important; /* Tmavý text pro perfektní kontrast a čitelnost */
     border: none !important;
     border-radius: 8px !important;
-    padding: 0.5rem 1.5rem !important;
-    font-weight: 600 !important;
-    transition: all 0.2s !important;
+    padding: 0.6rem 1.8rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(197, 160, 89, 0.2) !important;
 }
 .stButton>button:hover {
-    background-color: #7f56d9 !important;
+    background-color: #e5c17b !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3) !important;
 }
 
-/* Skrytí výchozího tlačítka popoveru pro přihlášení a jeho úprava */
+/* Profilové kolečko v pravém horním rohu */
 [data-testid="stPopover"] > button {
-    background-color: #c05c5c !important; /* Barva profilového kolečka z předlohy */
-    color: white !important;
+    background-color: #36304a !important; 
+    color: #c5a059 !important;
     border-radius: 50% !important;
     width: 45px !important;
     height: 45px !important;
@@ -199,15 +227,15 @@ h1, h2, h3, p, span, div {
     align-items: center !important;
     justify-content: center !important;
     font-weight: bold !important;
-    border: none !important;
+    border: 1px solid #c5a059 !important;
 }
 [data-testid="stPopover"] > button > div > div > p {
-    color: white !important;
+    color: #c5a059 !important;
     font-weight: bold;
     margin: 0;
 }
 [data-testid="stPopover"] > button svg {
-    display: none; /* Skryje šipku v tlačítku */
+    display: none;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -215,7 +243,7 @@ h1, h2, h3, p, span, div {
 # --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
     # Načtení loga v JPG formátu do levého horního rohu
-    foto_logo = nacti_obrazek_base64("pozadi2.png")
+    foto_logo = nacti_obrazek_base64("pozadi2.jpg")
     if foto_logo:
         st.markdown(f"""
         <div class="sidebar-logo-container">
@@ -223,13 +251,10 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Záložní text, pokud soubor na disku chybí
         st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
-        st.error("Soubor 'pozadi2.png' nebyl nalezen ve složce s programem.")
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
-    # Položky menu s emoji (suplují ikony z obrázku)
     seznam_stranek = ["🏠 Domů (Informace)", "🔨 Ukázky práce", "🧮 Kalkulačka zakázky", "✉️ Sjednat termín"]
     
     if st.session_state.prihlasen:
@@ -237,8 +262,6 @@ with st.sidebar:
         seznam_stranek.extend(["⚙️ Administrace", "📊 Návštěvnost"])
 
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
-    
-    # Získání čistého názvu stránky bez emoji pro logiku
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
 
 # --- HORNÍ LIŠTA A PŘIHLÁŠENÍ (PRAVÝ HORNÍ ROH) ---
@@ -257,7 +280,7 @@ with col_login:
                 else:
                     st.error("Přístup odepřen.")
         else:
-            st.success("Přihlášen: Administrátor")
+            st.success("Přihlášen: Admin")
             if st.button("Odhlásit", use_container_width=True):
                 st.session_state.prihlasen = False
                 st.rerun()
@@ -267,7 +290,6 @@ st.markdown("<br>", unsafe_allow_html=True)
 # --- HLAVNÍ OBSAHOVÉ STRÁNKY ---
 
 if aktualni_stranka == "Domů (Informace)":
-    # Hlavní Banner ve stylu "OK RADAR" z obrázku
     st.markdown("""
     <div class="hero-banner">
         <h1>Poctivé kovářské řemeslo</h1>
@@ -280,7 +302,7 @@ if aktualni_stranka == "Domů (Informace)":
     with col_text:
         st.markdown("""
         <div class="content-card">
-            <h3 style='margin-top:0; color:#fff;'>Naše služby</h3>
+            <h3 style='margin-top:0;'>Naše služby</h3>
             <ul style='color:#a09eb5; line-height: 1.8;'>
                 <li><b>Kované vjezdové brány</b> (křídlové i posuvné automatické)</li>
                 <li><b>Kované ploty a výplně zídek</b></li>
@@ -292,13 +314,12 @@ if aktualni_stranka == "Domů (Informace)":
     with col_vyhody:
         st.markdown("""
         <div class="content-card">
-            <h3 style='margin-top:0; color:#fff;'>Proč si vybrat nás?</h3>
+            <h3 style='margin-top:0;'>Proč si vybrat nás?</h3>
             <p style='color:#a09eb5;'>🛡️ <b>Maximální odolnost:</b> Používáme kvalitní žárové zinkování a barvy proti rzi.</p>
             <p style='color:#a09eb5;'>🔨 <b>100% Ruční práce:</b> Žádné sériové odlitky. Každý spoj tvořen ručně.</p>
             <p style='color:#a09eb5;'>📐 <b>Návrh na míru:</b> Zaměření a konzultace přímo na místě instalace.</p>
         </div>
         """, unsafe_allow_html=True)
-
 
 elif aktualni_stranka == "Ukázky práce":
     st.markdown("<h2>Ukázky naší práce</h2>", unsafe_allow_html=True)
@@ -331,7 +352,6 @@ elif aktualni_stranka == "Ukázky práce":
     else: 
         st.info("Galerie se momentálně připravuje.")
 
-
 elif aktualni_stranka == "Kalkulačka zakázky":
     st.markdown("<h2>Získejte okamžitý odhad ceny</h2>", unsafe_allow_html=True)
     st.write("Výpočet v reálném čase zohledňuje aktuální ceny hutních materiálů a časovou náročnost.")
@@ -359,15 +379,14 @@ elif aktualni_stranka == "Kalkulačka zakázky":
             cena = (data["kg_na_metr"] * delka_v_metrech * aktualni_cena_zeleza_za_kg) + (data["prace_na_metr"] * delka_v_metrech)
             
             st.markdown(f"""
-            <div class="content-card" style='border-left: 5px solid #6941c6;'>
-                <h4 style='margin-top: 0; color: white;'>Předběžná kalkulace</h4>
+            <div class="content-card" style='border-left: 5px solid #c5a059;'>
+                <h4 style='margin-top: 0;'>Předběžná kalkulace</h4>
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
-                <h2 style='color: #fff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #666; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
+                <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
+                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
             </div>
             """, unsafe_allow_html=True)
-
 
 elif aktualni_stranka == "Sjednat termín":
     st.markdown("<h2>Napište nám o svém projektu</h2>", unsafe_allow_html=True)
@@ -392,7 +411,6 @@ elif aktualni_stranka == "Sjednat termín":
             uloz_json(SOUBOR_TERMINY, st.session_state.terminy)
             st.success("Vaše poptávka byla úspěšně odeslána! Brzy se ozveme.")
     st.markdown('</div>', unsafe_allow_html=True)
-
 
 elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
     st.markdown("<h2>Správa poptávek</h2>", unsafe_allow_html=True)
