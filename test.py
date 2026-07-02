@@ -11,6 +11,7 @@ st.set_page_config(page_title="Umělecké kovářství Štěpán Palla", layout=
 # --- FUNKCE PRO DATA A OBRÁZKY ---
 SOUBOR_TERMINY = "terminy.json"
 SOUBOR_NAVSTEVNOST = "navstevnost.json"
+SOUBOR_GALERIE = "galerie.json"  # Nový soubor pro trvalou persistenci fotografií
 
 def nacti_json(soubor, default_hodnota):
     if os.path.exists(soubor):
@@ -31,6 +32,8 @@ def nacti_obrazek_base64(cesta_k_souboru):
 # Inicializace session state
 if "terminy" not in st.session_state:
     st.session_state.terminy = nacti_json(SOUBOR_TERMINY, [])
+if "galerie" not in st.session_state:
+    st.session_state.galerie = nacti_json(SOUBOR_GALERIE, [])
 if "prihlasen" not in st.session_state:
     st.session_state.prihlasen = False
 
@@ -162,7 +165,7 @@ p, span, div, label {
     font-size: 3rem;
     font-weight: 900;
     margin-bottom: 15px;
-    color: #c5a059 !important; /* Nadpis v banneru upraven na bronzovou */
+    color: #c5a059 !important;
     border: none;
 }
 .hero-banner p {
@@ -184,7 +187,7 @@ p, span, div, label {
 }
 .content-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(197, 160, 89, 0.12); /* Jemný bronzový svit výhně */
+    box-shadow: 0 8px 25px rgba(197, 160, 89, 0.12);
     border-color: #453d5a;
 }
 
@@ -201,7 +204,7 @@ p, span, div, label {
 /* Nová prémiová kovářská tlačítka (Barva kovaného bronzu/mosazi) */
 .stButton>button {
     background-color: #c5a059 !important;
-    color: #110f16 !important; /* Tmavý text pro perfektní kontrast a čitelnost */
+    color: #110f16 !important;
     border: none !important;
     border-radius: 8px !important;
     padding: 0.6rem 1.8rem !important;
@@ -216,46 +219,48 @@ p, span, div, label {
     box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3) !important;
 }
 
-/* --- MINIMALISTICKÉ PLOVOUCÍ PŘIHLAŠOVACÍ TLAČÍTKO V ÚPLNÉM ROHU --- */
+/* --- FIX: OPRAVDOVÝ MINI OBDÉLNÍČEK V PRAVÉM ROHU DOLE --- */
 div[data-testid="stPopover"] {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    z-index: 9999;
+    position: fixed !important;
+    bottom: 15px !important;
+    right: 15px !important;
+    z-index: 999999 !important;
+    width: auto !important; /* Blokuje roztažení přes celou obrazovku */
+    display: inline-block !important;
 }
-[data-testid="stPopover"] > button {
-    background-color: rgba(23, 21, 32, 0.6) !important; 
+div[data-testid="stPopover"] > button {
+    background-color: rgba(23, 21, 32, 0.8) !important; 
     color: #c5a059 !important;
     border-radius: 4px !important;
-    width: 30px !important; /* Výrazné zmenšení tlačítka */
-    height: 30px !important;
+    width: 45px !important; /* Fixní malá šířka obdélníku */
+    height: 28px !important; /* Fixní nízká výška */
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border: 1px solid rgba(197, 160, 89, 0.3) !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+    border: 1px solid rgba(197, 160, 89, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6) !important;
     transition: all 0.3s ease !important;
-    opacity: 0.6; /* V základu je poloprůhledné a nenápadné */
+    opacity: 0.6;
 }
-[data-testid="stPopover"] > button:hover {
+div[data-testid="stPopover"] > button:hover {
     background-color: #c5a059 !important;
     border-color: #e5c17b !important;
     opacity: 1;
     transform: scale(1.05);
 }
-[data-testid="stPopover"] > button:hover > div > div > p {
+div[data-testid="stPopover"] > button:hover > div > div > p {
     color: #110f16 !important;
 }
-[data-testid="stPopover"] > button > div > div > p {
+div[data-testid="stPopover"] > button > div > div > p {
     color: #c5a059 !important;
-    font-size: 10px !important; /* Menší font pro text ŠP */
+    font-size: 11px !important;
     font-weight: bold;
     margin: 0;
     transition: color 0.3s ease !important;
 }
-[data-testid="stPopover"] > button svg {
-    display: none;
+div[data-testid="stPopover"] > button svg {
+    display: none; /* Odstraní šipku Streamlitu, aby zbyl čistý obdélník */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -263,7 +268,6 @@ div[data-testid="stPopover"] {
 # --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
     
-    # Načtení podpisu v PNG formátu (místo starého loga)
     foto_logo = nacti_obrazek_base64("podpis.png")
     if foto_logo:
         st.markdown(f"""
@@ -285,7 +289,7 @@ with st.sidebar:
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
 
-# --- PLOVOUCÍ PŘIHLÁŠENÍ (SKRYTÉ VPRAVO DOLE) ---
+# --- PLOVOUCÍ PŘIHLÁŠENÍ (STRIKTNÍ OBDÉLNÍČEK VPRAVO DOLE) ---
 with st.popover("ŠP"): 
     if not st.session_state.prihlasen:
         st.markdown("**Správa webu**")
@@ -342,31 +346,40 @@ elif aktualni_stranka == "Ukázky práce":
     
     if st.session_state.prihlasen:
         with st.expander("📸 Přidat nové fotografie"):
-            if not os.path.exists("fotogalerie"): 
-                os.makedirs("fotogalerie")
             uploaded_file = st.file_uploader("Vyberte obrázek (JPG, PNG)", type=["jpg", "jpeg", "png"])
             if uploaded_file:
                 if st.button("Nahrát na web"):
-                    with open(os.path.join("fotogalerie", uploaded_file.name), "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                    st.success("Uloženo!")
+                    # Převod nahraného obrázku na Base64 string pro trvalé uložení v JSONu
+                    bytes_data = uploaded_file.getvalue()
+                    base64_foto = base64.b64encode(bytes_data).decode("utf-8")
+                    
+                    st.session_state.galerie.append({
+                        "id": str(uuid.uuid4())[:8],
+                        "nazev": uploaded_file.name,
+                        "data": base64_foto
+                    })
+                    uloz_json(SOUBOR_GALERIE, st.session_state.galerie)
+                    st.success("Fotografie byla trvale uložena do databáze!")
                     st.rerun()
 
-    if os.path.exists("fotogalerie"):
-        fotky = [f for f in os.listdir("fotogalerie") if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-        if not fotky: 
-            st.info("Galerie se momentálně připravuje. Brzy zde uvidíte naše realizace.")
-        else:
-            cols = st.columns(3)
-            for i, fotka in enumerate(fotky):
-                with cols[i % 3]:
-                    st.image(os.path.join("fotogalerie", fotka), use_container_width=True)
-                    if st.session_state.prihlasen:
-                        if st.button("🗑️ Smazat", key=f"del_{i}"):
-                            os.remove(os.path.join("fotogalerie", fotka))
-                            st.rerun()
-    else: 
-        st.info("Galerie se momentálně připravuje.")
+    # Načítání a vykreslování fotek z trvalého JSONu místo nestabilní složky
+    if not st.session_state.galerie:
+        st.info("Galerie se momentálně připravuje. Brzy zde uvidíte naše realizace.")
+    else:
+        cols = st.columns(3)
+        for i, fotka in enumerate(st.session_state.galerie):
+            with cols[i % 3]:
+                try:
+                    raw_bytes = base64.b64decode(fotka["data"])
+                    st.image(raw_bytes, use_container_width=True)
+                except Exception:
+                    st.error("Chyba při načítání souboru.")
+                    
+                if st.session_state.prihlasen:
+                    if st.button("🗑️ Smazat", key=f"del_{fotka['id']}"):
+                        st.session_state.galerie.pop(i)
+                        uloz_json(SOUBOR_GALERIE, st.session_state.galerie)
+                        st.rerun()
 
 elif aktualni_stranka == "Kalkulačka zakázky":
     st.markdown("<h2>Získejte okamžitý odhad ceny</h2>", unsafe_allow_html=True)
@@ -400,7 +413,7 @@ elif aktualni_stranka == "Kalkulačka zakázky":
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
+                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
             </div>
             """, unsafe_allow_html=True)
 
