@@ -73,10 +73,10 @@ st.markdown("""
 /* Skrytí horního panelu u postranního menu */
 [data-testid="stSidebarNav"] { display: none; }
 
-/* Typografie - Nadpisy mají umělecký font, texty zůstávají čisté */
-h1, h2, h3 {
+/* Typografie - Nadpisy mají umělecký font kovaného bronzu */
+h1, h2, h3, h4 {
     font-family: 'Cinzel', serif !important;
-    color: #f1f5f9 !important;
+    color: #c5a059 !important; /* Sjednoceno na barvu kovaného bronzu */
     letter-spacing: 1px;
 }
 p, span, div, label {
@@ -162,7 +162,7 @@ p, span, div, label {
     font-size: 3rem;
     font-weight: 900;
     margin-bottom: 15px;
-    color: #ffffff;
+    color: #c5a059 !important; /* Nadpis v banneru upraven na bronzovou */
     border: none;
 }
 .hero-banner p {
@@ -216,31 +216,32 @@ p, span, div, label {
     box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3) !important;
 }
 
-/* --- PLOVOUCÍ PŘIHLAŠOVACÍ TLAČÍTKO V PRAVÉM DOLNÍM ROHU --- */
+/* --- MINIMALISTICKÉ PLOVOUCÍ PŘIHLAŠOVACÍ TLAČÍTKO V ÚPLNÉM ROHU --- */
 div[data-testid="stPopover"] {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: 10px;
+    right: 10px;
     z-index: 9999;
 }
 [data-testid="stPopover"] > button {
-    background-color: #171520 !important; 
+    background-color: rgba(23, 21, 32, 0.6) !important; 
     color: #c5a059 !important;
-    border-radius: 50% !important;
-    width: 50px !important;
-    height: 50px !important;
+    border-radius: 4px !important;
+    width: 30px !important; /* Výrazné zmenšení tlačítka */
+    height: 30px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-weight: bold !important;
-    border: 2px solid #c5a059 !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+    border: 1px solid rgba(197, 160, 89, 0.3) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
     transition: all 0.3s ease !important;
+    opacity: 0.6; /* V základu je poloprůhledné a nenápadné */
 }
 [data-testid="stPopover"] > button:hover {
     background-color: #c5a059 !important;
     border-color: #e5c17b !important;
+    opacity: 1;
     transform: scale(1.05);
 }
 [data-testid="stPopover"] > button:hover > div > div > p {
@@ -248,6 +249,7 @@ div[data-testid="stPopover"] {
 }
 [data-testid="stPopover"] > button > div > div > p {
     color: #c5a059 !important;
+    font-size: 10px !important; /* Menší font pro text ŠP */
     font-weight: bold;
     margin: 0;
     transition: color 0.3s ease !important;
@@ -283,7 +285,7 @@ with st.sidebar:
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
 
-# --- PLOVOUCÍ PŘIHLÁŠENÍ (ZOBRAZÍ SE VPRAVO DOLE) ---
+# --- PLOVOUCÍ PŘIHLÁŠENÍ (SKRYTÉ VPRAVO DOLE) ---
 with st.popover("ŠP"): 
     if not st.session_state.prihlasen:
         st.markdown("**Správa webu**")
@@ -398,7 +400,7 @@ elif aktualni_stranka == "Kalkulačka zakázky":
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
+                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
             </div>
             """, unsafe_allow_html=True)
 
