@@ -86,15 +86,16 @@ p, span, div, label {
 /* Kontejner pro logo v levém rohu */
 .sidebar-logo-container {
     text-align: center;
-    padding: 10px 0 15px 0;
+    padding: 15px 0 25px 0;
     border-bottom: 1px solid #2a2538;
     margin-bottom: 20px;
 }
 .sidebar-logo-img {
-    max-width: 100%;
+    max-width: 90%;
     height: auto;
     display: block;
     margin: 0 auto;
+    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));
 }
 
 /* Záložní text pro logo */
@@ -215,29 +216,41 @@ p, span, div, label {
     box-shadow: 0 6px 15px rgba(197, 160, 89, 0.3) !important;
 }
 
-/* Profilové kolečko (nyní v levém horním rohu) */
+/* --- PLOVOUCÍ PŘIHLAŠOVACÍ TLAČÍTKO V PRAVÉM DOLNÍM ROHU --- */
+div[data-testid="stPopover"] {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+}
 [data-testid="stPopover"] > button {
-    background-color: transparent !important; 
+    background-color: #171520 !important; 
     color: #c5a059 !important;
-    border-radius: 5px !important;
-    width: 45px !important;
-    height: 45px !important;
+    border-radius: 50% !important;
+    width: 50px !important;
+    height: 50px !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     font-weight: bold !important;
-    border: 1px solid #36304a !important;
-    margin-bottom: 15px;
+    border: 2px solid #c5a059 !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+    transition: all 0.3s ease !important;
 }
 [data-testid="stPopover"] > button:hover {
-    background-color: rgba(197, 160, 89, 0.08) !important;
-    border: 1px solid #c5a059 !important;
+    background-color: #c5a059 !important;
+    border-color: #e5c17b !important;
+    transform: scale(1.05);
+}
+[data-testid="stPopover"] > button:hover > div > div > p {
+    color: #110f16 !important;
 }
 [data-testid="stPopover"] > button > div > div > p {
     color: #c5a059 !important;
     font-weight: bold;
     margin: 0;
+    transition: color 0.3s ease !important;
 }
 [data-testid="stPopover"] > button svg {
     display: none;
@@ -248,34 +261,16 @@ p, span, div, label {
 # --- LEVÉ POSTSTRANNÍ MENU (SIDEBAR) ---
 with st.sidebar:
     
-    # --- PŘIHLÁŠENÍ (LEVÝ HORNÍ ROH) ---
-    with st.popover("ŠP"): 
-        if not st.session_state.prihlasen:
-            st.markdown("**Správa webu**")
-            jmeno = st.text_input("Jméno")
-            heslo = st.text_input("Heslo", type="password")
-            if st.button("Vstoupit", use_container_width=True):
-                if jmeno == "1" and heslo == "1":
-                    st.session_state.prihlasen = True
-                    st.rerun()
-                else:
-                    st.error("Přístup odepřen.")
-        else:
-            st.success("Přihlášen: Admin")
-            if st.button("Odhlásit", use_container_width=True):
-                st.session_state.prihlasen = False
-                st.rerun()
-
-    # Načtení loga v JPG formátu
-    foto_logo = nacti_obrazek_base64("pozadi2.jpg")
+    # Načtení podpisu v PNG formátu (místo starého loga)
+    foto_logo = nacti_obrazek_base64("podpis.png")
     if foto_logo:
         st.markdown(f"""
         <div class="sidebar-logo-container">
-            <img src="data:image/jpeg;base64,{foto_logo}" class="sidebar-logo-img" alt="Logo">
+            <img src="data:image/png;base64,{foto_logo}" class="sidebar-logo-img" alt="Podpis Štěpán Pala">
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown("<div class='sidebar-logo-text'>Umělecké kovářství<br>Štěpán Palla</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sidebar-logo-text'>Štěpán Palla</div>", unsafe_allow_html=True)
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
@@ -287,6 +282,24 @@ with st.sidebar:
 
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
     aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
+
+# --- PLOVOUCÍ PŘIHLÁŠENÍ (ZOBRAZÍ SE VPRAVO DOLE) ---
+with st.popover("ŠP"): 
+    if not st.session_state.prihlasen:
+        st.markdown("**Správa webu**")
+        jmeno = st.text_input("Jméno")
+        heslo = st.text_input("Heslo", type="password")
+        if st.button("Vstoupit", use_container_width=True):
+            if jmeno == "1" and heslo == "1":
+                st.session_state.prihlasen = True
+                st.rerun()
+            else:
+                st.error("Přístup odepřen.")
+    else:
+        st.success("Přihlášen: Admin")
+        if st.button("Odhlásit", use_container_width=True):
+            st.session_state.prihlasen = False
+            st.rerun()
 
 # --- HLAVNÍ OBSAHOVÉ STRÁNKY ---
 
@@ -319,15 +332,6 @@ if aktualni_stranka == "Domů (Informace)":
             <p style='color:#a09eb5;'>🛡️ <b>Maximální odolnost:</b> Používáme kvalitní žárové zinkování a barvy proti rzi.</p>
             <p style='color:#a09eb5;'>🔨 <b>100% Ruční práce:</b> Žádné sériové odlitky. Každý spoj tvořen ručně.</p>
             <p style='color:#a09eb5;'>📐 <b>Návrh na míru:</b> Zaměření a konzultace přímo na místě instalace.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # VLOŽENÍ PODPISU DO PRAVÉHO DOLNÍHO ROHU
-    foto_podpis = nacti_obrazek_base64("podpis.png")
-    if foto_podpis:
-        st.markdown(f"""
-        <div style="display: flex; justify-content: flex-end; margin-top: 5px; padding-right: 15px;">
-            <img src="data:image/png;base64,{foto_podpis}" alt="Podpis" style="max-width: 250px; opacity: 0.85; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));">
         </div>
         """, unsafe_allow_html=True)
 
