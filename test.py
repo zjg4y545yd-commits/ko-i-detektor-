@@ -110,6 +110,16 @@ div[data-testid="stPopover"] > button:hover { background-color: #c5a059 !importa
 div[data-testid="stPopover"] > button:hover > div > div > p { color: #110f16 !important; }
 div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !important; font-size: 11px !important; font-weight: bold; margin: 0; transition: color 0.3s ease !important; }
 div[data-testid="stPopover"] > button svg { display: none; }
+
+/* Úprava barvy a viditelnosti šipky pro otevírání/skrývání bočního panelu */
+button[data-testid="stHeaderActionButton"] svg, 
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="collapsedControl"] svg {
+    color: #c5a059 !important;
+    fill: #c5a059 !important;
+    transform: scale(1.2);
+    transition: transform 0.2s ease, color 0.2s ease;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -128,15 +138,14 @@ with st.sidebar:
     
     st.markdown("<div class='menu-section-title'>Navigace</div>", unsafe_allow_html=True)
     
-    seznam_stranek = ["🏠 Domů (Informace)", "🔨 Ukázky práce", "🧮 Kalkulačka zakázky", "✉️ Sjednat termín"]
+    seznam_stranek = ["Domů (Informace)", "Ukázky práce", "Orientační ceník", "Sjednat termín"]
     
     if st.session_state.prihlasen:
         st.markdown("<div class='menu-section-title'>Správa webu</div>", unsafe_allow_html=True)
-        # Nová položka Ceník přidána do menu
-        seznam_stranek.extend(["⚙️ Administrace", "📊 Návštěvnost", "💰 Ceník"])
+        seznam_stranek.extend(["Administrace", "Návštěvnost", "Ceník"])
 
     vybrana_polozka = st.radio("Menu", seznam_stranek, label_visibility="collapsed")
-    aktualni_stranka = vybrana_polozka.split(" ", 1)[1]
+    aktualni_stranka = vybrana_polozka
 
 # --- PLOVOUCÍ PŘIHLÁŠENÍ ---
 with st.popover("ŠP"): 
@@ -228,13 +237,12 @@ elif aktualni_stranka == "Ukázky práce":
                         uloz_json(SOUBOR_GALERIE, st.session_state.galerie)
                         st.rerun()
 
-elif aktualni_stranka == "Kalkulačka zakázky":
+elif aktualni_stranka == "Orientační ceník":
     st.markdown("<h2>Získejte okamžitý odhad ceny</h2>", unsafe_allow_html=True)
     st.write("Výpočet v reálném čase zohledňuje aktuální ceny hutních materiálů a časovou náročnost.")
     
     col_kalk, col_vysledek = st.columns([1, 1])
     
-    # Ceny a koeficienty se nyní nenačítají z kódu, ale z administrace (jsonu)
     koeficienty = st.session_state.cenik["produkty"]
     
     with col_kalk:
@@ -247,7 +255,6 @@ elif aktualni_stranka == "Kalkulačka zakázky":
         
     with col_vysledek:
         if pocitat:
-            # Načtení aktuální ceny železa z administrace
             aktualni_cena_zeleza_za_kg = st.session_state.cenik["zelezo_kg"] 
             data = koeficienty[vybrany_produkt]
             
@@ -315,7 +322,7 @@ elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
         graf_data = {den: (len(d) if isinstance(d, list) else d) for den, d in data_navstev.items()}
         st.bar_chart(graf_data)
 
-# --- NOVÁ STRÁNKA CENÍK ---
+# --- STRÁNKA CENÍK ---
 elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
     st.markdown("<h2>Správa ceníku a koeficientů</h2>", unsafe_allow_html=True)
     st.write("Zde můžete upravovat ceny vstupů, které se okamžitě projeví zákazníkům v kalkulačce.")
