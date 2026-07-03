@@ -12,8 +12,9 @@ st.set_page_config(page_title="Umělecké kovářství Štěpán Palla", layout=
 SOUBOR_TERMINY = "terminy.json"
 SOUBOR_NAVSTEVNOST = "navstevnost.json"
 SOUBOR_GALERIE = "galerie.json"
-SOUBOR_CENIK = "cenik.json"
+SOUBOR_CENIK = "cenik.json" # Nový soubor pro trvalou správu cen
 
+# Výchozí ceník, který se načte při prvním spuštění
 DEFAULT_CENIK = {
     "zelezo_kg": 28.50,
     "produkty": {
@@ -66,49 +67,22 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- INJEKCE FONTŮ PŘÍMO DO HTML ---
-st.markdown('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Allura&family=Pinyon+Script&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">', unsafe_allow_html=True)
-
-# --- CSS STYLING (Zlaté nadpisy, tenký elegantní podpisový styl) ---
+# --- CSS STYLING (Prémiový kovářský vizuál) ---
 st.markdown("""
 <style>
-/* Pojistka přes @import pro jistotu stažení fontu */
-@import url('https://fonts.googleapis.com/css2?family=Allura&family=Pinyon+Script&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;500;600&display=swap');
 
 [data-testid="stAppViewContainer"] { background-color: #110f16 !important; color: #e2e8f0; }
 [data-testid="stSidebar"] { background-color: #171520 !important; border-right: 1px solid #2a2538; }
 [data-testid="stHeader"] { background-color: transparent !important; }
 [data-testid="stSidebarNav"] { display: none; }
 
-/* ZMĚNA: Elegantní tenký font podobný logu na fotce, barva vrácena na zlatou */
-h1, h2, h3, h4 { 
-    font-family: 'Pinyon Script', 'Allura', cursive !important; 
-    color: #c5a059 !important; 
-    letter-spacing: 1px; 
-    font-weight: 400 !important; 
-}
-/* Kaligrafické fonty jsou vizuálně menší, proto jsou hodnoty rem zvětšené */
-h1 { font-size: 5.5rem !important; } 
-h2 { font-size: 4.2rem !important; }
-h3 { font-size: 3.4rem !important; }
-h4 { font-size: 2.8rem !important; }
-
+h1, h2, h3, h4 { font-family: 'Cinzel', serif !important; color: #c5a059 !important; letter-spacing: 1px; }
 p, span, div, label { font-family: 'Inter', sans-serif; }
 
 .sidebar-logo-container { text-align: center; padding: 15px 0 25px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; }
 .sidebar-logo-img { max-width: 90%; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5)); }
-
-/* Náhradní podpis v menu */
-.sidebar-logo-text { 
-    font-family: 'Pinyon Script', 'Allura', cursive !important; 
-    font-size: 3.5rem; 
-    font-weight: 400; 
-    color: #c5a059; 
-    padding: 10px 0 20px 0; 
-    border-bottom: 1px solid #2a2538; 
-    margin-bottom: 20px; 
-    text-align: center; 
-}
+.sidebar-logo-text { font-family: 'Cinzel', serif !important; font-size: 1.1rem; font-weight: 700; color: #c5a059; padding: 10px 0 20px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
 
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span[data-baseweb="radio"] { display: none; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label { padding: 12px 15px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; background-color: transparent; transition: all 0.3s ease; display: flex; align-items: center; }
@@ -118,7 +92,7 @@ p, span, div, label { font-family: 'Inter', sans-serif; }
 .menu-section-title { font-size: 0.75rem; color: #71717a; text-transform: uppercase; font-weight: 600; margin-top: 25px; margin-bottom: 10px; padding-left: 5px; letter-spacing: 1px; }
 
 .hero-banner { background: linear-gradient(135deg, #1c1924 0%, #121017 100%); border: 1px solid #36304a; border-radius: 16px; padding: 3.5rem 2rem; text-align: center; margin-bottom: 2.5rem; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
-.hero-banner h1 { margin-bottom: 15px; border: none; }
+.hero-banner h1 { font-size: 3rem; font-weight: 900; margin-bottom: 15px; border: none; }
 .hero-banner p { font-size: 1.15rem; color: #94a3b8; max-width: 750px; margin: 0 auto; line-height: 1.6; }
 
 .content-card { background-color: #16141d; border: 1px solid #2a2538; border-radius: 12px; padding: 24px; margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
@@ -137,6 +111,7 @@ div[data-testid="stPopover"] > button:hover > div > div > p { color: #110f16 !im
 div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !important; font-size: 11px !important; font-weight: bold; margin: 0; transition: color 0.3s ease !important; }
 div[data-testid="stPopover"] > button svg { display: none; }
 
+/* ULTIMÁTNÍ ZACÍLENÍ NA STREAMLIT ŠIPKU V LEVÉM PANELU */
 [data-testid="collapsedControl"] *,
 [data-testid="stSidebarCollapseButton"] *,
 header[data-testid="stHeader"] button *,
@@ -290,7 +265,7 @@ elif aktualni_stranka == "Orientační ceník":
                 <h4 style='margin-top: 0;'>Předběžná kalkulace</h4>
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
-                <h2 style='color: #c5a059; margin: 0;'>{cena:,.0f} Kč</h2>
+                <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
                 <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
             </div>
             """, unsafe_allow_html=True)
@@ -347,6 +322,7 @@ elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
         graf_data = {den: (len(d) if isinstance(d, list) else d) for den, d in data_navstev.items()}
         st.bar_chart(graf_data)
 
+# --- STRÁNKA CENÍK ---
 elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
     st.markdown("<h2>Správa ceníku a koeficientů</h2>", unsafe_allow_html=True)
     st.write("Zde můžete upravovat ceny vstupů, které se okamžitě projeví zákazníkům v kalkulačce.")
@@ -368,7 +344,7 @@ elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
             with col2:
                 vaha = st.number_input(f"Spotřeba železa (kg/m)", value=int(data["kg_na_metr"]), step=1, key=f"vaha_{produkt}")
             nove_produkty[produkt] = {"kg_na_metr": vaha, "prace_na_metr": prace}
-            st.write("") 
+            st.write("") # prázdný řádek pro odsazení
             
         ulozit = st.form_submit_button("💾 Uložit nový ceník", use_container_width=True)
         if ulozit:
