@@ -12,9 +12,8 @@ st.set_page_config(page_title="Umělecké kovářství Štěpán Palla", layout=
 SOUBOR_TERMINY = "terminy.json"
 SOUBOR_NAVSTEVNOST = "navstevnost.json"
 SOUBOR_GALERIE = "galerie.json"
-SOUBOR_CENIK = "cenik.json" # Nový soubor pro trvalou správu cen
+SOUBOR_CENIK = "cenik.json"
 
-# Výchozí ceník, který se načte při prvním spuštění
 DEFAULT_CENIK = {
     "zelezo_kg": 28.50,
     "produkty": {
@@ -67,11 +66,14 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING ---
+# --- CSS STYLING A IMPORT FONTU ---
+# Zde je upravený import fontu Alex Brush, aby ho Streamlit neblokoval
 st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@400;500;600&display=swap');
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
+<style>
 [data-testid="stAppViewContainer"] { background-color: #110f16 !important; color: #e2e8f0; }
 [data-testid="stSidebar"] { background-color: #171520 !important; border-right: 1px solid #2a2538; }
 [data-testid="stHeader"] { background-color: transparent !important; }
@@ -81,7 +83,7 @@ p, span, div, label, li { font-family: 'Inter', sans-serif; }
 
 .sidebar-logo-container { text-align: center; padding: 15px 0 25px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; }
 .sidebar-logo-img { max-width: 90%; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5)); }
-.sidebar-logo-text { font-family: 'Cinzel', serif !important; font-size: 1.1rem; font-weight: 700; color: #c5a059; padding: 10px 0 20px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
+.sidebar-logo-text { font-family: 'Inter', sans-serif !important; font-size: 1.1rem; font-weight: 700; color: #c5a059; padding: 10px 0 20px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
 
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span[data-baseweb="radio"] { display: none; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label { padding: 12px 15px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; background-color: transparent; transition: all 0.3s ease; display: flex; align-items: center; }
@@ -113,11 +115,7 @@ div[data-testid="stPopover"] > button svg { display: none; }
 [data-testid="collapsedControl"] *,
 [data-testid="stSidebarCollapseButton"] *,
 header[data-testid="stHeader"] button *,
-button[kind="header"] * {
-    color: #c5a059 !important;
-    fill: #c5a059 !important;
-    stroke: #c5a059 !important;
-}
+button[kind="header"] * { color: #c5a059 !important; fill: #c5a059 !important; stroke: #c5a059 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -240,7 +238,6 @@ elif aktualni_stranka == "Orientační ceník":
     st.write("Výpočet v reálném čase zohledňuje aktuální ceny hutních materiálů a časovou náročnost.")
     
     col_kalk, col_vysledek = st.columns([1, 1])
-    
     koeficienty = st.session_state.cenik["produkty"]
     
     with col_kalk:
@@ -255,7 +252,6 @@ elif aktualni_stranka == "Orientační ceník":
         if pocitat:
             aktualni_cena_zeleza_za_kg = st.session_state.cenik["zelezo_kg"] 
             data = koeficienty[vybrany_produkt]
-            
             cena = (data["kg_na_metr"] * delka_v_metrech * aktualni_cena_zeleza_za_kg) + (data["prace_na_metr"] * delka_v_metrech)
             
             st.markdown(f"""
