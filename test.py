@@ -67,7 +67,7 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING (Prémiový kovářský vizuál) ---
+# --- CSS STYLING (Prémiový kovářský vizuál s jednotným fontem) ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;500;600&display=swap');
@@ -77,7 +77,12 @@ st.markdown("""
 [data-testid="stHeader"] { background-color: transparent !important; }
 [data-testid="stSidebarNav"] { display: none; }
 
-h1, h2, h3, h4 { font-family: 'Cinzel', serif !important; color: #c5a059 !important; letter-spacing: 1px; }
+/* Globální nastavení pro nadpisy: Písmo Cinzel a Zlatá barva */
+h1, h2, h3, h4, .umelsky-nadpis { 
+    font-family: 'Cinzel', serif !important; 
+    color: #c5a059 !important; 
+    letter-spacing: 2px !important; 
+}
 p, span, div, label { font-family: 'Inter', sans-serif; }
 
 .sidebar-logo-container { text-align: center; padding: 15px 0 25px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; }
@@ -91,12 +96,14 @@ p, span, div, label { font-family: 'Inter', sans-serif; }
 
 .menu-section-title { font-size: 0.75rem; color: #71717a; text-transform: uppercase; font-weight: 600; margin-top: 25px; margin-bottom: 10px; padding-left: 5px; letter-spacing: 1px; }
 
+/* Úprava Hero banneru, aby neodstraňoval zlatou barvu z H1 */
 .hero-banner { background: linear-gradient(135deg, #1c1924 0%, #121017 100%); border: 1px solid #36304a; border-radius: 16px; padding: 3.5rem 2rem; text-align: center; margin-bottom: 2.5rem; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
-.hero-banner h1 { font-size: 3rem; font-weight: 900; margin-bottom: 15px; border: none; }
+.hero-banner h1 { font-size: 3rem; font-weight: 900; margin-bottom: 15px; border: none; font-family: 'Cinzel', serif !important; color: #c5a059 !important; }
 .hero-banner p { font-size: 1.15rem; color: #94a3b8; max-width: 750px; margin: 0 auto; line-height: 1.6; }
 
 .content-card { background-color: #16141d; border: 1px solid #2a2538; border-radius: 12px; padding: 24px; margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .content-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(197, 160, 89, 0.12); border-color: #453d5a; }
+.content-card h3 { font-family: 'Cinzel', serif !important; color: #c5a059 !important; }
 
 .stImage img { border-radius: 8px !important; border: 1px solid #2a2538 !important; transition: transform 0.3s ease; }
 .stImage img:hover { transform: scale(1.02); }
@@ -111,7 +118,7 @@ div[data-testid="stPopover"] > button:hover > div > div > p { color: #110f16 !im
 div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !important; font-size: 11px !important; font-weight: bold; margin: 0; transition: color 0.3s ease !important; }
 div[data-testid="stPopover"] > button svg { display: none; }
 
-/* ULTIMÁTNÍ ZACÍLENÍ NA STREAMLIT ŠIPKU V LEVÉM PANELU */
+/* ZACÍLENÍ NA STREAMLIT ŠIPKU V LEVÉM PANELU */
 [data-testid="collapsedControl"] *,
 [data-testid="stSidebarCollapseButton"] *,
 header[data-testid="stHeader"] button *,
@@ -266,7 +273,7 @@ elif aktualni_stranka == "Orientační ceník":
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
-                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) a montáž.</p>
+                <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -322,7 +329,6 @@ elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
         graf_data = {den: (len(d) if isinstance(d, list) else d) for den, d in data_navstev.items()}
         st.bar_chart(graf_data)
 
-# --- STRÁNKA CENÍK ---
 elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
     st.markdown("<h2>Správa ceníku a koeficientů</h2>", unsafe_allow_html=True)
     st.write("Zde můžete upravovat ceny vstupů, které se okamžitě projeví zákazníkům v kalkulačce.")
@@ -344,7 +350,7 @@ elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
             with col2:
                 vaha = st.number_input(f"Spotřeba železa (kg/m)", value=int(data["kg_na_metr"]), step=1, key=f"vaha_{produkt}")
             nove_produkty[produkt] = {"kg_na_metr": vaha, "prace_na_metr": prace}
-            st.write("") # prázdný řádek pro odsazení
+            st.write("") 
             
         ulozit = st.form_submit_button("💾 Uložit nový ceník", use_container_width=True)
         if ulozit:
