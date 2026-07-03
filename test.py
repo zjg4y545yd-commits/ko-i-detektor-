@@ -111,17 +111,11 @@ div[data-testid="stPopover"] > button:hover > div > div > p { color: #110f16 !im
 div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !important; font-size: 11px !important; font-weight: bold; margin: 0; transition: color 0.3s ease !important; }
 div[data-testid="stPopover"] > button svg { display: none; }
 
-/* AGREVNÍ ZACÍLENÍ NA VŠECHNY PRVKY ŠIPKY */
-button[kind="header"] svg,
-button[kind="header"] svg path,
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="stSidebarCollapseButton"] svg path,
-[data-testid="collapsedControl"] svg,
-[data-testid="collapsedControl"] svg path,
-button[aria-label="Collapse sidebar"] svg,
-button[aria-label="Collapse sidebar"] svg path,
-button[aria-label="Expand sidebar"] svg,
-button[aria-label="Expand sidebar"] svg path {
+/* ULTIMÁTNÍ ZACÍLENÍ NA STREAMLIT ŠIPKU V LEVÉM PANELU */
+[data-testid="collapsedControl"] *,
+[data-testid="stSidebarCollapseButton"] *,
+header[data-testid="stHeader"] button *,
+button[kind="header"] * {
     color: #c5a059 !important;
     fill: #c5a059 !important;
     stroke: #c5a059 !important;
