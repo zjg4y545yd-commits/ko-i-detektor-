@@ -112,13 +112,14 @@ div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !importan
 div[data-testid="stPopover"] > button svg { display: none; }
 
 /* Úprava barvy a viditelnosti šipky pro otevírání/skrývání bočního panelu */
-button[data-testid="stHeaderActionButton"] svg, 
-[data-testid="stSidebarCollapseButton"] svg,
-[data-testid="collapsedControl"] svg {
+[data-testid="stSidebarCollapseButton"] svg, 
+[data-testid="collapsedControl"] svg,
+section[data-testid="stSidebar"] button svg,
+header[data-testid="stHeader"] button svg {
     color: #c5a059 !important;
     fill: #c5a059 !important;
+    stroke: #c5a059 !important;
     transform: scale(1.2);
-    transition: transform 0.2s ease, color 0.2s ease;
 }
 </style>
 """, unsafe_allow_html=True)
