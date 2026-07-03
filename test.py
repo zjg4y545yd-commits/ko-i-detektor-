@@ -111,15 +111,20 @@ div[data-testid="stPopover"] > button:hover > div > div > p { color: #110f16 !im
 div[data-testid="stPopover"] > button > div > div > p { color: #c5a059 !important; font-size: 11px !important; font-weight: bold; margin: 0; transition: color 0.3s ease !important; }
 div[data-testid="stPopover"] > button svg { display: none; }
 
-/* Úprava barvy a viditelnosti šipky pro otevírání/skrývání bočního panelu */
-[data-testid="stSidebarCollapseButton"] svg, 
+/* AGREVNÍ ZACÍLENÍ NA VŠECHNY PRVKY ŠIPKY */
+button[kind="header"] svg,
+button[kind="header"] svg path,
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapseButton"] svg path,
 [data-testid="collapsedControl"] svg,
-section[data-testid="stSidebar"] button svg,
-header[data-testid="stHeader"] button svg {
+[data-testid="collapsedControl"] svg path,
+button[aria-label="Collapse sidebar"] svg,
+button[aria-label="Collapse sidebar"] svg path,
+button[aria-label="Expand sidebar"] svg,
+button[aria-label="Expand sidebar"] svg path {
     color: #c5a059 !important;
     fill: #c5a059 !important;
     stroke: #c5a059 !important;
-    transform: scale(1.2);
 }
 </style>
 """, unsafe_allow_html=True)
