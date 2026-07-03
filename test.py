@@ -67,27 +67,28 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING (Prémiový kovářský vizuál s jednotným fontem) ---
+# --- CSS STYLING (Prémiový kovářský vizuál s fontem Alex Brush) ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@400;500;600&display=swap');
 
 [data-testid="stAppViewContainer"] { background-color: #110f16 !important; color: #e2e8f0; }
 [data-testid="stSidebar"] { background-color: #171520 !important; border-right: 1px solid #2a2538; }
 [data-testid="stHeader"] { background-color: transparent !important; }
 [data-testid="stSidebarNav"] { display: none; }
 
-/* Globální nastavení pro nadpisy: Písmo Cinzel a Zlatá barva */
+/* Globální nastavení pro nadpisy: Písmo Alex Brush a Zlatá barva */
 h1, h2, h3, h4, .umelsky-nadpis { 
-    font-family: 'Cinzel', serif !important; 
+    font-family: 'Alex Brush', cursive !important; 
     color: #c5a059 !important; 
-    letter-spacing: 2px !important; 
+    letter-spacing: 1px !important; 
+    font-weight: normal !important;
 }
 p, span, div, label { font-family: 'Inter', sans-serif; }
 
 .sidebar-logo-container { text-align: center; padding: 15px 0 25px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; }
 .sidebar-logo-img { max-width: 90%; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5)); }
-.sidebar-logo-text { font-family: 'Cinzel', serif !important; font-size: 1.1rem; font-weight: 700; color: #c5a059; padding: 10px 0 20px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
+.sidebar-logo-text { font-family: 'Alex Brush', cursive !important; font-size: 2rem; font-weight: normal; color: #c5a059; padding: 10px 0 20px 0; border-bottom: 1px solid #2a2538; margin-bottom: 20px; text-align: center; }
 
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label span[data-baseweb="radio"] { display: none; }
 [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label { padding: 12px 15px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; background-color: transparent; transition: all 0.3s ease; display: flex; align-items: center; }
@@ -96,14 +97,16 @@ p, span, div, label { font-family: 'Inter', sans-serif; }
 
 .menu-section-title { font-size: 0.75rem; color: #71717a; text-transform: uppercase; font-weight: 600; margin-top: 25px; margin-bottom: 10px; padding-left: 5px; letter-spacing: 1px; }
 
-/* Úprava Hero banneru, aby neodstraňoval zlatou barvu z H1 */
+/* Úprava Hero banneru - zvětšení fontu Alex Brush pro H1 */
 .hero-banner { background: linear-gradient(135deg, #1c1924 0%, #121017 100%); border: 1px solid #36304a; border-radius: 16px; padding: 3.5rem 2rem; text-align: center; margin-bottom: 2.5rem; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
-.hero-banner h1 { font-size: 3rem; font-weight: 900; margin-bottom: 15px; border: none; font-family: 'Cinzel', serif !important; color: #c5a059 !important; }
+.hero-banner h1 { font-size: 4rem; font-weight: normal; margin-bottom: 15px; border: none; font-family: 'Alex Brush', cursive !important; color: #c5a059 !important; }
 .hero-banner p { font-size: 1.15rem; color: #94a3b8; max-width: 750px; margin: 0 auto; line-height: 1.6; }
 
+/* Úprava nadpisů v kartách - zvětšení fontu pro lepší čitelnost */
 .content-card { background-color: #16141d; border: 1px solid #2a2538; border-radius: 12px; padding: 24px; margin-bottom: 20px; transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .content-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(197, 160, 89, 0.12); border-color: #453d5a; }
-.content-card h3 { font-family: 'Cinzel', serif !important; color: #c5a059 !important; }
+.content-card h3 { font-family: 'Alex Brush', cursive !important; color: #c5a059 !important; font-size: 2.2rem; font-weight: normal; margin-bottom: 15px; }
+.content-card h4 { font-family: 'Alex Brush', cursive !important; color: #c5a059 !important; font-size: 1.8rem; font-weight: normal; }
 
 .stImage img { border-radius: 8px !important; border: 1px solid #2a2538 !important; transition: transform 0.3s ease; }
 .stImage img:hover { transform: scale(1.02); }
@@ -272,7 +275,7 @@ elif aktualni_stranka == "Orientační ceník":
                 <h4 style='margin-top: 0;'>Předběžná kalkulace</h4>
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
-                <h2 style='color: #ffffff; margin: 0;'>{cena:,.0f} Kč</h2>
+                <h2 style='color: #ffffff; margin: 0; font-family: "Inter", sans-serif !important;'>{cena:,.0f} Kč</h2>
                 <p style='font-size: 0.85rem; color: #71717a; margin-top: 10px;'>* Cena je orientační. Neobsahuje povrchovou úpravu (zinek/barva) and montáž.</p>
             </div>
             """, unsafe_allow_html=True)
@@ -335,11 +338,11 @@ elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
     
     st.markdown('<div class="content-card">', unsafe_allow_html=True)
     with st.form("form_cenik"):
-        st.markdown("<h4 style='color: #c5a059; margin-top: 0;'>Cena materiálu</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='margin-top: 0;'>Cena materiálu</h4>", unsafe_allow_html=True)
         nove_zelezo = st.number_input("Aktuální cena železa za kg (Kč):", value=float(st.session_state.cenik["zelezo_kg"]), step=1.0)
         
         st.markdown("<hr style='border-color: #2a2538; margin: 20px 0;'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color: #c5a059;'>Cena práce a spotřeba materiálu na 1 metr</h4>", unsafe_allow_html=True)
+        st.markdown("<h4>Cena práce a spotřeba materiálu na 1 metr</h4>", unsafe_allow_html=True)
         
         nove_produkty = {}
         for produkt, data in st.session_state.cenik["produkty"].items():
