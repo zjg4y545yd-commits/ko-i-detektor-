@@ -66,14 +66,23 @@ if "navsteva_zaznamenana" not in st.session_state:
     data_navstev[dnes].append({"cas": cas, "id": st.session_state.visitor_id})
     uloz_json(SOUBOR_NAVSTEVNOST, data_navstev)
 
-# --- CSS STYLING A IMPORT FONTU ---
-# Zde je upravený import fontu Alex Brush, aby ho Streamlit neblokoval
+# --- CSS STYLING (IMPORT MUSÍ BÝT NA ABSOLUTNÍM ZAČÁTKU BLOKU) ---
 st.markdown("""
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+/* Globální vynucení fontu Alex Brush pro všechny typy nadpisů na stránce */
+h1, h2, h3, h4, 
+[data-testid="stMarkdownContainer"] h1, 
+[data-testid="stMarkdownContainer"] h2, 
+[data-testid="stMarkdownContainer"] h3, 
+[data-testid="stMarkdownContainer"] h4 {
+    font-family: 'Alex Brush', cursive !important;
+    color: #c5a059 !important;
+    font-weight: normal !important;
+}
+
 [data-testid="stAppViewContainer"] { background-color: #110f16 !important; color: #e2e8f0; }
 [data-testid="stSidebar"] { background-color: #171520 !important; border-right: 1px solid #2a2538; }
 [data-testid="stHeader"] { background-color: transparent !important; }
@@ -166,7 +175,7 @@ with st.popover("ŠP"):
 if aktualni_stranka == "Domů (Informace)":
     st.markdown("""
     <div class="hero-banner">
-        <h1 style="font-family: 'Alex Brush', cursive !important; font-size: 4.5rem; font-weight: normal; color: #c5a059; margin-bottom: 15px; border: none; line-height: 1.2;">Poctivé kovářské řemeslo</h1>
+        <h1 style="font-family: 'Alex Brush', cursive !important; font-size: 4.8rem; font-weight: normal; color: #c5a059; margin-bottom: 15px; border: none; line-height: 1.2;">Poctivé kovářské řemeslo</h1>
         <p>Zakázková výroba kovaných plotů, vjezdových bran a mříží. Každý kus, který opustí naši kovadlinu, je výsledkem tradičních postupů, kde se surová síla ohně potkává s absolutní přesností a citem pro detail.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -176,7 +185,7 @@ if aktualni_stranka == "Domů (Informace)":
     with col_text:
         st.markdown("""
         <div class="content-card">
-            <h3 style="font-family: 'Alex Brush', cursive !important; font-size: 2.8rem; font-weight: normal; color: #c5a059; margin-top:0; margin-bottom: 20px;">Naše služby</h3>
+            <h3 style="font-family: 'Alex Brush', cursive !important; font-size: 3rem; font-weight: normal; color: #c5a059; margin-top:0; margin-bottom: 20px;">Naše služby</h3>
             <ul style='color:#a09eb5; line-height: 1.8;'>
                 <li><b>Kované vjezdové brány</b> (křídlové i posuvné automatické)</li>
                 <li><b>Kované ploty a výplně zídek</b></li>
@@ -188,7 +197,7 @@ if aktualni_stranka == "Domů (Informace)":
     with col_vyhody:
         st.markdown("""
         <div class="content-card">
-            <h3 style="font-family: 'Alex Brush', cursive !important; font-size: 2.8rem; font-weight: normal; color: #c5a059; margin-top:0; margin-bottom: 20px;">Proč si vybrat nás?</h3>
+            <h3 style="font-family: 'Alex Brush', cursive !important; font-size: 3rem; font-weight: normal; color: #c5a059; margin-top:0; margin-bottom: 20px;">Proč si vybrat nás?</h3>
             <p style='color:#a09eb5;'>🛡️ <b>Maximální odolnost:</b> Používáme kvalitní žárové zinkování a barvy proti rzi.</p>
             <p style='color:#a09eb5;'>🔨 <b>100% Ruční práce:</b> Žádné sériové odlitky. Každý spoj tvořen ručně.</p>
             <p style='color:#a09eb5;'>📐 <b>Návrh na míru:</b> Zaměření a konzultace přímo na místě instalace.</p>
@@ -196,7 +205,7 @@ if aktualni_stranka == "Domů (Informace)":
         """, unsafe_allow_html=True)
 
 elif aktualni_stranka == "Ukázky práce":
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Ukázky naší práce</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Ukázky naší práce</h2>""", unsafe_allow_html=True)
     
     if st.session_state.prihlasen:
         with st.expander("📸 Přidat nové fotografie"):
@@ -234,7 +243,7 @@ elif aktualni_stranka == "Ukázky práce":
                         st.rerun()
 
 elif aktualni_stranka == "Orientační ceník":
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Získejte okamžitý odhad ceny</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Získejte okamžitý odhad ceny</h2>""", unsafe_allow_html=True)
     st.write("Výpočet v reálném čase zohledňuje aktuální ceny hutních materiálů a časovou náročnost.")
     
     col_kalk, col_vysledek = st.columns([1, 1])
@@ -256,7 +265,7 @@ elif aktualni_stranka == "Orientační ceník":
             
             st.markdown(f"""
             <div class="content-card" style='border-left: 5px solid #c5a059;'>
-                <h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.2rem; font-weight: normal; color: #c5a059; margin-top: 0; margin-bottom: 15px;">Předběžná kalkulace</h4>
+                <h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.5rem; font-weight: normal; color: #c5a059; margin-top: 0; margin-bottom: 15px;">Předběžná kalkulace</h4>
                 <p style='margin-bottom: 5px; color:#a09eb5;'>Produkt: <b>{vybrany_produkt}</b></p>
                 <p style='margin-bottom: 15px; color:#a09eb5;'>Rozměr: <b>{delka_v_metrech} m</b></p>
                 <h2 style='color: #ffffff; margin: 0; font-family: "Inter", sans-serif !important;'>{cena:,.0f} Kč</h2>
@@ -265,7 +274,7 @@ elif aktualni_stranka == "Orientační ceník":
             """, unsafe_allow_html=True)
 
 elif aktualni_stranka == "Sjednat termín":
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Napište nám o svém projektu</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Napište nám o svém projektu</h2>""", unsafe_allow_html=True)
     
     st.markdown('<div class="content-card">', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
@@ -289,7 +298,7 @@ elif aktualni_stranka == "Sjednat termín":
     st.markdown('</div>', unsafe_allow_html=True)
 
 elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Správa poptávek</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Správa poptávek</h2>""", unsafe_allow_html=True)
     nevyresene = [t for t in st.session_state.terminy if not t.get("vyreseno", False)]
     
     if not nevyresene:
@@ -308,7 +317,7 @@ elif aktualni_stranka == "Administrace" and st.session_state.prihlasen:
                     st.rerun()
 
 elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Statistiky webu</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Statistiky webu</h2>""", unsafe_allow_html=True)
     data_navstev = nacti_json(SOUBOR_NAVSTEVNOST, {})
     if not data_navstev:
         st.info("Zatím nejsou data.")
@@ -317,16 +326,16 @@ elif aktualni_stranka == "Návštěvnost" and st.session_state.prihlasen:
         st.bar_chart(graf_data)
 
 elif aktualni_stranka == "Ceník" and st.session_state.prihlasen:
-    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.5rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Správa ceníku a koeficientů</h2>""", unsafe_allow_html=True)
+    st.markdown("""<h2 style="font-family: 'Alex Brush', cursive !important; font-size: 3.8rem; font-weight: normal; color: #c5a059; margin-bottom: 20px;">Správa ceníku a koeficientů</h2>""", unsafe_allow_html=True)
     st.write("Zde můžete upravovat ceny vstupů, které se okamžitě projeví zákazníkům v kalkulačce.")
     
     st.markdown('<div class="content-card">', unsafe_allow_html=True)
     with st.form("form_cenik"):
-        st.markdown("""<h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.2rem; font-weight: normal; color: #c5a059; margin-top: 0; margin-bottom: 15px;">Cena materiálu</h4>""", unsafe_allow_html=True)
+        st.markdown("""<h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.5rem; font-weight: normal; color: #c5a059; margin-top: 0; margin-bottom: 15px;">Cena materiálu</h4>""", unsafe_allow_html=True)
         nove_zelezo = st.number_input("Aktuální cena železa za kg (Kč):", value=float(st.session_state.cenik["zelezo_kg"]), step=1.0)
         
         st.markdown("<hr style='border-color: #2a2538; margin: 20px 0;'>", unsafe_allow_html=True)
-        st.markdown("""<h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.2rem; font-weight: normal; color: #c5a059; margin-bottom: 15px;">Cena práce a spotřeba materiálu na 1 metr</h4>""", unsafe_allow_html=True)
+        st.markdown("""<h4 style="font-family: 'Alex Brush', cursive !important; font-size: 2.5rem; font-weight: normal; color: #c5a059; margin-bottom: 15px;">Cena práce a spotřeba materiálu na 1 metr</h4>""", unsafe_allow_html=True)
         
         nove_produkty = {}
         for produkt, data in st.session_state.cenik["produkty"].items():
